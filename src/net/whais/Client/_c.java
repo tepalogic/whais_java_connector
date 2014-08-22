@@ -1,19 +1,26 @@
 package net.whais.Client;
 
+/**
+ * Class used to hold global constants used though out this package.
+ *
+ * @author Iulian POPA
+ *
+ */
+
 class _c
 {
     final static int CLIENT_VERSIONS             = 0x00000001;
-    
+
     final static int MIN_FRAME_SIZE              = 512;
     final static int MAX_FRAME_SIZE              = 65535;
-    final static int DEFAULT_FRAME_SIZE          = 4096;
+    final static int DEFAULT_FRAME_SIZE          = MAX_FRAME_SIZE;
 
     final static byte FRAME_SIZE_OFF             = 0x00;
     final static byte FRAME_TYPE_OFF             = 0x02;
     final static byte FRAME_ENCTYPE_OFF          = 0x03;
     final static byte FRAME_ID_OFF               = 0x04;
     final static byte FRAME_HDR_SIZE             = 0x08;
-    
+
     final static byte FRAME_TYPE_NORMAL          = (byte) 0x00;
     final static byte FRAME_TYPE_AUTH_CLNT       = (byte) 0x01;
     final static byte FRAME_TYPE_AUTH_CLNT_RSP   = (byte) 0x02;
@@ -35,7 +42,7 @@ class _c
     final static byte PLAIN_TYPE_OFF             = 0x08;
     final static byte PLAIN_CRC_OFF              = 0x0A;
     final static byte PLAIN_HDR_SIZE             = 0x0C;
-    
+
     final static byte FRAME_AUTH_VER_OFF         = 0x00;
     final static byte FRAME_AUTH_SIZE_OFF        = 0x04;
     final static byte FRAME_AUTH_SPARE_1_OFF     = 0x06;
@@ -46,13 +53,13 @@ class _c
     final static byte FRAME_AUTH_RSP_VER_OFF     = 0x00;
     final static byte FRAME_AUTH_RSP_USR_OFF     = 0x04;
     final static byte FRAME_AUTH_RSP_ENC_OFF     = 0x05;
-    final static byte FRAME_AUTH_RSP_SPARE_OFF   = 0x06;
+    final static byte FRAME_AUTH_RSP_SIZE_OFF    = 0x06;
     final static byte FRAME_AUTH_RSP_FIXED_SIZE  = 0x08;
-    
-    
+
+
     final static short ADMIN_CMD_BASE            = 0x0000;
     final static short USER_CMD_BASE             = 0x1000;
-    
+
     final static short CMD_INVALID               = ADMIN_CMD_BASE;
     final static short CMD_INVALID_RSP           = CMD_INVALID + 1;
 

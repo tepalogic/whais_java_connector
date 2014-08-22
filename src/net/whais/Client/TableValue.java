@@ -5,7 +5,7 @@ import java.util.Vector;
 
 public class TableValue extends Value
 {
-    TableValue (FieldValueType[] fields) throws ConnException
+    TableValue (TableFieldType[] fields) throws ConnException
     {
         if ((fields == null) || (fields.length == 0))
             throw new ConnException (CmdResult.INVALID_ARGS, "No fields descriptors supplied to create a table.");
@@ -84,7 +84,7 @@ public class TableValue extends Value
         if (field >= fields.length)
             throw new ConnException(CmdResult.INVALID_FIELD);
         
-        if ((value != null) && ! value.type ().equals (fields[field].type ()))
+        if ((value != null) && ! value.type ().equals (fields[field].getType ()))
             throw new ConnException (CmdResult.INVALID_ARGS, "The value type is different than of the field type");
         
         values.get (row).set (field, value);
@@ -107,13 +107,13 @@ public class TableValue extends Value
         return values.size ();
     }
     
-    public FieldValueType[] getFields ()
+    public TableFieldType[] getFields ()
     {
         assert fields.length > 0;
         
         return fields;
     }
     
-    private final FieldValueType[]     fields;
+    private final TableFieldType[]     fields;
     private Vector<Vector<Value>>      values;      
 }

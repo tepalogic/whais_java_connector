@@ -100,7 +100,7 @@ public class ArrayValue extends Value
         if (this.isNull ())
             return ValueType.create (ValueType.ARRAY_MASK | ValueType.TYPE_NOTSET);
         
-        return ValueType.create (this.values.get (0).type ().getType() & ValueType.ARRAY_MASK);
+        return ValueType.create (this.values.get (0).type ().getTypeId() & ValueType.ARRAY_MASK);
     }
     
     private Vector<Value> values;
