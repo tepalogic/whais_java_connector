@@ -81,6 +81,12 @@ public class TableFieldType implements Comparable<TableFieldType>
         return this.fieldType;
     }
 
+    /*
+     * Used internally to normalize the fields of a table.
+     *
+     * @deprecated Should not be used.
+     * @since 1.0
+     */
     @Override
     public int compareTo (TableFieldType o)
     {

@@ -9,7 +9,7 @@ import net.whais.Client.ValueType;
 import test.net.whais.Client.CommnandLine;
 
 
-public class ConnectorTestListGlobas
+public class ConnectorTestListGlobals
 {
 
     public static void main (String[] args) throws IOException
@@ -28,7 +28,7 @@ public class ConnectorTestListGlobas
                                        (byte) cmdLine.getUserId (),
                                        cmdLine.getMaxFrameSize ());
 
-        ConnectorTestListGlobas testListGlobas = new ConnectorTestListGlobas ();
+        ConnectorTestListGlobals testListGlobas = new ConnectorTestListGlobals ();
 
         boolean testResult = testListGlobas.checkGlobalsName (c);
         testResult = testResult && testListGlobas.checkGlobalsTypes (c);
@@ -51,6 +51,7 @@ public class ConnectorTestListGlobas
             for (int j = i + 1; j < globals.length; ++j) {
                 if (globals[i].equals (globals[j])) {
                     System.out.println ("Retieved a global name twice.");
+                    return false;
                 }
             }
 

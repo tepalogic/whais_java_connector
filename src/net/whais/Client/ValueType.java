@@ -21,11 +21,14 @@ public class ValueType
         if ((isArray (type) || (! isTable (type) && ! isField (type)))
             && (fields != null))
         {
-            throw new ConnException (CmdResult.INVALID_ARGS, "An array or a basic type does not need fields descriptors");
+            throw new ConnException (CmdResult.INVALID_ARGS,
+                                     "An array or a basic type does not need fields descriptors");
         }
 
         this.type   = (short)type;
-        this.fields = ((fields == null) || (fields.length == 0)) ? null : Arrays.copyOf (fields, fields.length);
+        this.fields = ((fields == null) || (fields.length == 0)) ?
+                        sNofields :
+                        Arrays.copyOf (fields, fields.length);
 
         if (this.fields == null)
             return ;
@@ -35,7 +38,10 @@ public class ValueType
         for (int i = 1; i < this.fields.length; ++i)
         {
             if (this.fields[i].compareTo(this.fields[i - 1]) == 0)
-                throw new ConnException (CmdResult.INVALID_ARGS, "All fields must have unique names.");
+            {
+                throw new ConnException (CmdResult.INVALID_ARGS,
+                                         "All fields must have unique names.");
+            }
         }
     }
 
@@ -61,7 +67,9 @@ public class ValueType
 
     /**
      * Factory method used to instantiate a Whais table value.
-     * A completely defined tables is a table that it has at least one field defined.
+     *
+     * A completely defined tables is a table that it has at least
+     * one field defined.
      *
      * @param fields The table fields.
      *
@@ -163,14 +171,16 @@ public class ValueType
 
                 default:
                     if (sFieldArrayType == null)
-                        sFieldArrayType = new ValueType (TYPE_NOTSET | ARRAY_MASK | FIELD_MASK);
+                        sFieldArrayType = new ValueType (TYPE_NOTSET |
+                                                         ARRAY_MASK  |
+                                                         FIELD_MASK);
 
                     return sFieldArrayType;
                 }
             }
-            else if (isBasic(type))
+            else
             {
-                switch (type)
+                switch (getBaseType (type))
                 {
                 case BOOL:
                     return fieldBoolType ();
@@ -228,6 +238,7 @@ public class ValueType
                 }
             }
         }
+
         if (isArray (type))
         {
             switch (getBaseType (type))
@@ -284,7 +295,8 @@ public class ValueType
                 return sArrayType;
             }
         }
-        else if (isBasic(type))
+
+        if (isBasic(type))
         {
             switch (type)
             {
@@ -336,8 +348,14 @@ public class ValueType
             case TEXT:
                 return textType ();
 
-            default:
-                assert false;
+            case TYPE_NOTSET:
+                if (sUndefinedType == null)
+                    sUndefinedType = new ValueType (TYPE_NOTSET);
+
+                return sUndefinedType;
+
+             default:
+                 assert false;
             }
         }
         else if (isTable (type))
@@ -348,11 +366,13 @@ public class ValueType
             return sTableType;
         }
 
-        throw new ConnException(CmdResult.INVALID_ARGS, "The supplied type does not indetify a valid parameter type.");
+        throw new ConnException(CmdResult.INVALID_ARGS,
+                                "The supplied type does not indetify a valid parameter type.");
     }
 
     /**
-     * Get the numeric value associated with the type described by the class instance.
+     * Get the numeric value associated with the type described by the class
+     * instance.
      *
      * @return The type id.
      *
@@ -385,10 +405,12 @@ public class ValueType
 
     /**
      * Get the fields of a Whais table.
+     *
      * @return The fields list. If the ValueType instance does not describe a
      *         table value or properly defined table than returned array will
      *         have a 0 length.
      *
+     * @since 1.0
      * @see #create(TableFieldType[])
      * @see TableFieldType
      */
@@ -397,6 +419,14 @@ public class ValueType
         return this.fields;
     }
 
+    /**
+     * Check if the class instance describes a basic type.
+     *
+     * @return true if the type is not an array, field nor a table.
+     *
+     * @since 1.0
+     * @see #isBasic(int)
+     */
     public final boolean isBasic ()
     {
         return isBasic (this.type);
@@ -427,7 +457,7 @@ public class ValueType
      */
     public static boolean isBasic (final int type)
     {
-        return ! (isArray(type) || isTable(type) || isField (type));
+        return ! (isArray (type) || isTable (type) || isField (type));
     }
 
     /**
@@ -597,7 +627,8 @@ public class ValueType
             return "UNDEFINED";
 
         default:
-            throw new ConnException (CmdResult.GENERAL_ERR, "Received an unexpected type value for string conversion");
+            throw new ConnException (CmdResult.GENERAL_ERR,
+                                     "Received an unexpected type value for string conversion");
         }
     }
 
@@ -633,7 +664,9 @@ public class ValueType
     }
 
     /**
-     * Like its class method equivalent it returns the basic type associated with a composite type.
+     * Like its class method equivalent it returns the basic type associated
+     * with a composite type.
+     *
      * @return The associated base type.
      * @throws ConnException
      *
@@ -646,12 +679,13 @@ public class ValueType
     }
 
     /**
-     * Used to retrieve the basic type associated with composites types (array or fields types).
+     * Used to retrieve the basic type associated with composites types
+     * (array or fields types).
      *
      * @param type  The composite type.
      * @return      The base type associated with the composite type.
-     *              For instance it will return {@link #DATE} for an 'ARRAY OF DATE',
-     *              or {@link #TYPE_NOTSET} for a 'FIELD' type.
+     *              For instance it will return {@link #DATE} for an
+     *              'ARRAY OF DATE', or {@link #TYPE_NOTSET} for a 'FIELD' type.
      *
      * @throws ConnException
      *
@@ -660,7 +694,8 @@ public class ValueType
     public static int getBaseType (int type) throws ConnException
     {
         if (isTable (type) && ! isField (type))
-            throw new ConnException (CmdResult.INVALID_ARGS, "The specified type must not be a table.");
+            throw new ConnException (CmdResult.INVALID_ARGS,
+                                     "The specified type must not be a table.");
 
         return type & 0xFF;
     }
@@ -1876,12 +1911,7 @@ public class ValueType
             return true;
 
         if (this.fields == null)
-        {
-            if (o.fields == null)
-                return true;
-
-            return false;
-        }
+            return o.fields == null;
 
         if (o.fields == null)
             return false;
@@ -1950,13 +1980,13 @@ public class ValueType
     public static final int TYPE_NOTSET     = 0x0011;
 
     /** Mask used to describe Whisper array value. */
-    public static final int ARRAY_MASK             = 0x0100;
+    public static final int ARRAY_MASK      = 0x0100;
 
     /** Mask used to describe Whisper field value. */
-    public static final int FIELD_MASK             = 0x0200;
+    public static final int FIELD_MASK      = 0x0200;
 
     /** Mask used to describe Whisper table value. */
-    public static final int TABLE_MASK             = 0x0400;
+    public static final int TABLE_MASK      = 0x0400;
 
     private final short              type;
     private final TableFieldType[]   fields;
@@ -2031,5 +2061,9 @@ public class ValueType
     private static ValueType          sArrayType;
     private static ValueType          sFieldType;
     private static ValueType          sTableType;
+    private static ValueType          sUndefinedType;
+
+
+    private static final TableFieldType[]  sNofields = new TableFieldType[0];
 
 }

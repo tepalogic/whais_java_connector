@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import net.whais.Client.Connection;
-import net.whais.Client.ProcedureParameters;
+import net.whais.Client.ProcedureDescription;
 import test.net.whais.Client.CommnandLine;
 
 
@@ -53,10 +53,10 @@ public class ConnectorTest {
             for (String s : procsNames)
             {
                 System.out.println ("[" + procIndex++ + "]\t" + s);
-                ProcedureParameters p = c.describeProcedure (s);
+                ProcedureDescription p = c.describeProcedure (s);
 
                 System.out.println("\t\tReturn Type: " + p.describeReturnValue ());
-                for (int i = 1; i <= p.count (); ++ i)
+                for (int i = 1; i <= p.getParametersCount (); ++ i)
                     System.out.println("\t\tParam " + i +": " + p.describeParameter (i));
             }
         }
