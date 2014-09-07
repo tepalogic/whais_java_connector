@@ -2,68 +2,61 @@ package net.whais.Client;
 
 import java.math.BigDecimal;
 
-public class RealValue extends Value implements Comparable<RealValue>
+public class RealValue extends Value
 {
-    public RealValue (double value)
+    RealValue (ValueType type, String value)
     {
-        this.value = new BigDecimal (value);
-    }
-    
-    public RealValue (String value)
-    {
+        super (type);
+
         if ((value == null) || (value.length () == 0))
             this.value = null;
-        
+
         else
             this.value = new BigDecimal (value);
     }
-    
-    public RealValue (BigDecimal value)
+
+    @Override
+    public boolean equals (Object p)
     {
-        this.value = value;
-    }
-    
-    public RealValue ()
-    {
-        this.value = null;
+        if (this == p)
+            return true;
+
+        else if ( ! (p instanceof RealValue))
+            return false;
+
+        final RealValue o = (RealValue) p;
+        try
+        {
+            if ( ! this.type ().equals (o.type ()))
+                return false;
+        }
+        catch (Throwable e)
+        {
+            return false;
+        }
+
+        if (this.isNull () != o.isNull())
+            return false;
+
+        else if (this.isNull())
+            return true;
+
+        return this.value.compareTo (o.value) == 0;
     }
 
     @Override
     public String toString ()
     {
-        if (isNull ())
+        if (this.isNull ())
             return "";
-                    
-        return value.toString ();
+
+        return this.value.toString ();
     }
 
     @Override
     public boolean isNull ()
     {
         return (this.value == null);
-    }
-
-    @Override
-    public ValueType type () throws ConnException
-    {
-        return ValueType.realType ();
-    }
-    
-    @Override
-    public int compareTo (RealValue o)
-    {
-        if (this.isNull ())
-        {
-            if (o.isNull ())
-                return 0;
-            
-            return -1;
-        }
-        
-        if (o.isNull ())
-            return 1;
-        
-        return this.value.compareTo (o.value);
     }
 
     private final  BigDecimal    value;

@@ -2,36 +2,52 @@ package net.whais.Client;
 
 import java.math.BigInteger;
 
-public class IntegerValue extends Value implements Comparable<IntegerValue>
+class IntegerValue extends Value
 {
-    public IntegerValue (long value)
+    IntegerValue (ValueType type, long value)
     {
+        super (type);
         this.value = new BigInteger ("" + value);
     }
-    
-    public IntegerValue (String v)
+
+    IntegerValue (ValueType type, String v)
     {
-        if ((v != null) && (v.length () > 0)) 
+        super (type);
+
+        if ((v != null) && (v.length () > 0))
             this.value = new BigInteger(v);
-        
+
         else
             this.value = null;
     }
-    
-    public IntegerValue (BigInteger v)
-    {
-        this.value = v;
-    }
-    
-    public IntegerValue ()
-    {
-        this.value = null;
-    }
 
     @Override
-    public boolean isNull ()
+    public boolean equals (Object p)
     {
-        return value == null;
+        if (this == p)
+            return true;
+
+        else if ( ! (p instanceof IntegerValue))
+            return false;
+
+        final IntegerValue o = (IntegerValue) p;
+        try
+        {
+            if ( ! this.type ().equals (o.type ()))
+                return false;
+        }
+        catch (Throwable e)
+        {
+            return false;
+        }
+
+        if (this.isNull () != o.isNull())
+            return false;
+
+        else if (this.isNull())
+            return true;
+
+        return this.value.compareTo (o.value) == 0;
     }
 
     @Override
@@ -39,31 +55,14 @@ public class IntegerValue extends Value implements Comparable<IntegerValue>
     {
         if (this.value != null)
             return this.value.toString ();
-        
+
         return "";
     }
 
     @Override
-    public ValueType type () throws ConnException
+    public boolean isNull ()
     {
-        return ValueType.int64Type ();
-    }
-
-    @Override
-    public int compareTo (IntegerValue o)
-    {
-        if (this.isNull ())
-        {
-            if (o.isNull ())
-                return 0;
-            
-            return -1;
-        }
-        
-        if (o.isNull ())
-            return 1;
-        
-        return this.value.compareTo (o.value);
+        return this.value == null;
     }
 
     private final BigInteger value;

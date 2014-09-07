@@ -158,7 +158,7 @@ public class Connection {
 
         try {
             if (discardCmds)
-                this.frame.discardPendingCommand ();
+                this.frame.discardCommandBuffer ();
             else
                 this.frame.flushPendingCommand ();
 
@@ -204,7 +204,7 @@ public class Connection {
 
         int cmdResult = buffer.getInt ();
 
-        this.frame.discardPendingCommand ();
+        this.frame.discardCommandBuffer ();
         if (cmdResult != CmdResult.OK)
             throw new ConnException (cmdResult);
     }
@@ -244,7 +244,7 @@ public class Connection {
             if ((glbIndex == 0)
                 || (buffer.position () >= this.frame.getCmdLastPosition ()))
             {
-                this.frame.discardPendingCommand ();
+                this.frame.discardCommandBuffer ();
                 buffer = this.frame.getCmdBuffer ();
 
                 buffer.putInt (glbIndex);
@@ -354,7 +354,7 @@ public class Connection {
             if ((procIndex == 0)
                 || (buffer.position () >= this.frame.getCmdLastPosition ()))
             {
-                this.frame.discardPendingCommand ();
+                this.frame.discardCommandBuffer ();
                 buffer = this.frame.getCmdBuffer ();
 
                 buffer.putInt (procIndex);
@@ -425,7 +425,7 @@ public class Connection {
         else if ((name == null) || (name.length () == 0))
             throw new ConnException (CmdResult.INVALID_ARGS);
 
-        this.frame.discardPendingCommand ();
+        this.frame.discardCommandBuffer ();
         ByteBuffer b = this.frame.getCmdBuffer ();
         byte[] n = name.getBytes (StandardCharsets.UTF_8);
         if (this.frame.availableCmdSize () < 2 + 2 + n.length + 1)
@@ -437,7 +437,7 @@ public class Connection {
         {
             if ((paramTypes == null) || (b.position() >= this.frame.getCmdLastPosition ()))
             {
-                this.frame.discardPendingCommand ();
+                this.frame.discardCommandBuffer ();
                 b = this.frame.getCmdBuffer ();
 
                 b.putShort ((short) param);
@@ -514,19 +514,19 @@ public class Connection {
 
     public ValueType describeStackTop () throws IOException
     {
-       if (this.frame.hasPendingCommands ())
+        if (this.frame.hasPendingCommands ())
             throw new ConnException (CmdResult.INCOMPLETE_CMD);
 
         return this.internalDescribeValue ("");
     }
 
-    public void pushStackValue (ValueType type) throws ConnException
+    public void pushStackValue (ValueType type) throws IOException
     {
-        if (this.frame.hasPendingCommands ()
-            && (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK))
-        {
+        if (! this.frame.hasPendingCommands ())
+            this.frame.discardCommandBuffer ();
+
+        else if (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK)
             throw new ConnException (CmdResult.INCOMPLETE_CMD);
-        }
 
         if (type.isField ())
             throw new ConnException (CmdResult.INVALID_ARGS, "Field values cannot be pushed on stack.");
@@ -575,13 +575,13 @@ public class Connection {
         this.frame.setPendingCommand(_c.CMD_UPDATE_STACK);
     }
 
-    public void popStackValues (int count) throws ConnException
+    public void popStackValues (int count) throws IOException
     {
-       if (this.frame.hasPendingCommands ()
-           && (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK))
-       {
-           throw new ConnException (CmdResult.INCOMPLETE_CMD);
-       }
+        if (! this.frame.hasPendingCommands ())
+            this.frame.discardCommandBuffer ();
+
+        else if (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK)
+            throw new ConnException (CmdResult.INCOMPLETE_CMD);
 
        if (this.frame.availableCmdSize () < 5)
        {
@@ -602,17 +602,23 @@ public class Connection {
        this.frame.setPendingCommand(_c.CMD_UPDATE_STACK);
     }
 
-    public void popStackValues () throws ConnException
+    public void popAllStackValues () throws IOException
     {
         this.popStackValues (-1);
     }
 
-    public void updateStackTop (Value val) throws ConnException
+    public void updateStackTop (Value val) throws IOException
     {
-        if (this.frame.hasPendingCommands ()
-            && (this.frame.getPendingCommand() != _c.CMD_UPDATE_STACK))
-        {
+        if (! this.frame.hasPendingCommands ())
+            this.frame.discardCommandBuffer ();
+
+        else if (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK)
             throw new ConnException (CmdResult.INCOMPLETE_CMD);
+
+        if (val.isNull ())
+        {
+            throw new ConnException(CmdResult.INVALID_ARGS,
+                                    "Cannot use a null value to update stack.");
         }
 
         if (val.type ().equals (ValueType.textType ()))
@@ -644,22 +650,29 @@ public class Connection {
             }
         }
         else
-            throw new ConnException (CmdResult.INVALID_ARGS, "Unexpected value type to update the top of stack.");
+        {
+            throw new ConnException (
+                            CmdResult.INVALID_ARGS,
+                            "Unexpected value type to update the top of stack."
+                                    );
+        }
     }
 
-    public void updateStackTop (Value val, String fieldName, long row) throws ConnException
+    public void updateStackTop (Value val,
+                                String fieldName,
+                                long row) throws IOException
     {
-        if (this.frame.hasPendingCommands ()
-            && (this.frame.getPendingCommand() != _c.CMD_UPDATE_STACK))
-        {
+        if (! this.frame.hasPendingCommands ())
+            this.frame.discardCommandBuffer ();
+
+        else if (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK)
             throw new ConnException (CmdResult.INCOMPLETE_CMD);
-        }
-        else if ((fieldName == null) || (fieldName.length () == 0))
+
+        if ((fieldName == null) || (fieldName.length () == 0))
             throw new  ConnException (CmdResult.INVALID_FIELD);
 
         else if (row < 0)
             throw new ConnException (CmdResult.INVALID_ROW);
-
 
        if (val.type ().equals (ValueType.textType ()))
             this.updateStackTopText (val.toString (), 0, fieldName, row);
@@ -668,10 +681,36 @@ public class Connection {
             this.updateStackTopBasic (val, fieldName, row);
 
         else if (val.type ().isArray ())
-            this.updateStackTopBasicArray (((ArrayValue) val).toArray (), 0, fieldName, row);
-
+        {
+            this.updateStackTopBasicArray (((ArrayValue) val).toArray (),
+                                           0,
+                                           fieldName,
+                                           row);
+        }
         else
-            throw new ConnException (CmdResult.INVALID_ARGS, "Unexpected value type to update the top of stack.");
+        {
+            throw new ConnException (
+                            CmdResult.INVALID_ARGS,
+                            "Unexpected value type to update the top of stack."
+                                    );
+        }
+    }
+
+    public void flushStackUpdates () throws IOException
+    {
+        if ( ! this.frame.hasPendingCommands ())
+            return;
+
+        if (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK)
+            throw new ConnException (CmdResult.INCOMPLETE_CMD);
+
+        this.frame.flushPendingCommand ();
+
+        final int cmdResult = this.frame.getCmdBuffer ().getInt ();
+        this.frame.discardCommandBuffer ();
+
+        if (cmdResult != CmdResult.OK)
+            throw new ConnException (cmdResult);
     }
 
     public long retrieveStackTopRowsCount () throws IOException
@@ -680,7 +719,12 @@ public class Connection {
             throw new ConnException(CmdResult.INCOMPLETE_CMD);
 
         if (this.frame.getCachedResponse () != _c.CMD_INVALID_RSP)
-            this.refreshReadCache (IGNORE_FIELD, IGNORE_ROW, IGNORE_OFFSET, IGNORE_OFFSET);
+        {
+            this.refreshReadCache (IGNORE_FIELD,
+                                   IGNORE_ROW,
+                                   IGNORE_OFFSET,
+                                   IGNORE_OFFSET);
+        }
 
         ByteBuffer b = this.frame.getCmdBuffer ();
         b.position (b.position () + 4);
@@ -723,7 +767,7 @@ public class Connection {
             long elementsCount = b.getLong ();
             type = (short) ValueType.getBaseType (type);
 
-            ArrayValue result = (ArrayValue) Value.create (ValueType.create (type | ValueType.ARRAY_MASK));
+            ArrayValue result = Value.createArray (ValueType.create (type | ValueType.ARRAY_MASK));
 
             if (elementsCount == 0)
                 return result;
@@ -756,7 +800,7 @@ public class Connection {
                             throw new ConnException (CmdResult.GENERAL_ERR);
                         }
                     }
-                    result.add (Value.create (b.array(), b.position (), ValueType.create ( type)));
+                    result.add (Value.createBasic (ValueType.create (type), b.array(), b.position ()));
 
                     while (b.get () != 0)
                         ; //Just let the buffer advance
@@ -771,7 +815,7 @@ public class Connection {
             long charsCount = b.getLong ();
 
             if (charsCount == 0)
-                return Value.create (ValueType.textType ());
+                return Value.createBasic (ValueType.textType ());
 
             long charOffset = b.getLong ();
             String text = "";
@@ -816,12 +860,12 @@ public class Connection {
                     text += t;
                 }
             }
-            return Value.create (text, ValueType.textType ());
+            return Value.createBasic (ValueType.textType (), text);
         }
 
-        return Value.create (b.array (),
-                             b.position (),
-                             ValueType.create (ValueType.getBaseType (type)));
+        return Value.createBasic (ValueType.create (ValueType.getBaseType (type)),
+                                  b.array (),
+                                  b.position ());
     }
 
     public Value retrieveStackTop (final String field, final long row) throws IOException
@@ -852,7 +896,7 @@ public class Connection {
         if (type.isArray ())
         {
             long elementsCount = b.getLong ();
-            ArrayValue result = (ArrayValue) Value.create (type);
+            ArrayValue result = Value.createArray (type);
 
             type = ValueType.create (type.getBaseType ());
 
@@ -889,7 +933,7 @@ public class Connection {
                             throw new ConnException (CmdResult.GENERAL_ERR);
                         }
                     }
-                    result.add (Value.create (b.array(), b.position (), type));
+                    result.add (Value.createBasic (type, b.array(), b.position ()));
 
                     while (b.get () != 0)
                         ; //Just let the buffer advance
@@ -905,7 +949,7 @@ public class Connection {
             long charsCount = b.getLong ();
 
             if (charsCount == 0)
-                return Value.create (type);
+                return Value.createBasic (type);
 
             long charOffset = b.getLong ();
             String text = "";
@@ -952,11 +996,11 @@ public class Connection {
                     text += t;
                 }
             }
-            return Value.create (text, type);
+            return Value.createBasic (type, text);
         }
 
         type = ValueType.create (type.getBaseType ());
-        return Value.create (b.array (), b.position (), type);
+        return Value.createBasic (type, b.array (), b.position ());
     }
 
     public Value retrieveStackTop () throws IOException
@@ -964,21 +1008,26 @@ public class Connection {
         if (this.frame.hasPendingCommands ())
             throw new ConnException (CmdResult.INCOMPLETE_CMD);
 
-        this.refreshReadCache (IGNORE_FIELD, IGNORE_ROW, IGNORE_OFFSET, IGNORE_OFFSET);
+        this.refreshReadCache (IGNORE_FIELD,
+                               IGNORE_ROW,
+                               IGNORE_OFFSET,
+                               IGNORE_OFFSET);
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (buffer.position () + 4); //We already know the query was successful.
+        buffer.position (buffer.position () + 4);
 
         ValueType type = ValueType.create (buffer.getShort ());
         if (type.isTable () || type.isField ())
         {
-            throw new ConnException (CmdResult.LARGE_RESPONSE,
-                              "The server stack value is either a table or a field. " +
-                              "Those values may be read row by by and field by field.");
+            throw new ConnException (
+                    CmdResult.LARGE_RESPONSE,
+                    "The server stack value is either a table or a field. "
+                      + "Those values may be read row by by and field by field."
+                                     );
         }
         else if (type.isArray ())
         {
             ValueType baseType = ValueType.create (type.getBaseType ());
-            ArrayValue result = (ArrayValue) Value.create (type);
+            ArrayValue result = Value.createArray (type);
 
             final long elementsCount = buffer.getLong ();
             long currentOffset = buffer.getLong ();
@@ -987,14 +1036,20 @@ public class Connection {
             {
                 if (buffer.position ()  >= buffer.capacity())
                 {
-                    this.refreshReadCache (IGNORE_FIELD, IGNORE_ROW, IGNORE_OFFSET, currentOffset);
+                    this.refreshReadCache (IGNORE_FIELD,
+                                           IGNORE_ROW,
+                                           IGNORE_OFFSET,
+                                           currentOffset);
                     buffer = this.frame.getCmdBuffer ();
-                    buffer.position (buffer.position () + 4); //We already know the query was successful.
+                    buffer.position (buffer.position () + 4);
 
                     if ((elementsCount != buffer.getLong ())
                         || (currentOffset != buffer.getLong ()))
                     {
-                        throw new ConnException (CmdResult.GENERAL_ERR, "Unexpected response frame format.");
+                        throw new ConnException (
+                                        CmdResult.GENERAL_ERR,
+                                        "Unexpected response frame format."
+                                                );
                     }
                 }
 
@@ -1003,7 +1058,9 @@ public class Connection {
                 while (buffer.get () != 0)
                     ; //Just let the buffer's position advance.
 
-                result.add (Value.create (buffer.array(), startOffset, baseType));
+                result.add (Value.createBasic (baseType,
+                                               buffer.array(),
+                                               startOffset));
                 ++currentOffset;
             }
 
@@ -1012,26 +1069,32 @@ public class Connection {
         else if (type.equals (ValueType.textType ()))
         {
             final long charsCount = buffer.getLong ();
-            long currentOffset = buffer.getLong ();
-
-            assert currentOffset == 0;
 
             if (charsCount == 0)
-                return Value.create (ValueType.textType ());
+                return Value.createBasic (ValueType.textType ());
+
+            long currentOffset = buffer.getLong ();
+            assert currentOffset == 0;
 
             String text = "";
             while (currentOffset < charsCount)
             {
                 if (buffer.position ()  >= buffer.capacity())
                 {
-                    this.refreshReadCache (IGNORE_FIELD, IGNORE_ROW, IGNORE_OFFSET, currentOffset);
+                    this.refreshReadCache (IGNORE_FIELD,
+                                           IGNORE_ROW,
+                                           IGNORE_OFFSET,
+                                           currentOffset);
                     buffer = this.frame.getCmdBuffer ();
-                    buffer.position (buffer.position () + 4); //We already know the query was successful.
+                    buffer.position (buffer.position () + 4);
 
                     if ((charsCount != buffer.getLong ())
                         || (currentOffset != buffer.getLong ()))
                     {
-                        throw new ConnException (CmdResult.GENERAL_ERR, "Unexpected response frame format.");
+                        throw new ConnException (
+                                        CmdResult.GENERAL_ERR,
+                                        "Unexpected response frame format."
+                                                );
                     }
                 }
 
@@ -1041,9 +1104,9 @@ public class Connection {
                 final int endOffset = buffer.position () - 1;
 
                 String t = new String (buffer.array (),
-                                          startOffset,
-                                          endOffset - startOffset,
-                                          StandardCharsets.UTF_8);
+                                       startOffset,
+                                       endOffset - startOffset,
+                                       StandardCharsets.UTF_8);
                 currentOffset += t.codePointCount (0, t.length ());
                 text += t;
 
@@ -1052,19 +1115,18 @@ public class Connection {
 
             assert text.length () > 0;
 
-            return Value.create (text, ValueType.textType ());
+            return Value.createBasic (ValueType.textType (), text);
         }
 
         assert type.isBasic();
 
-        return Value.create (buffer.array(), buffer.position(), type);
+        return Value.createBasic (type, buffer.array(), buffer.position());
     }
 
-    private final void updateStackTopBasic (Value value) throws ConnException
+    private final void updateStackTopBasic (Value value) throws IOException
     {
         assert ! value.type().equals (ValueType.textType ());
         assert ! (value.type ().isArray() || value.type().isField() || value.type().isTable());
-        assert ! value.isNull ();
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
         buffer.position (this.frame.getCmdLastPosition ());
@@ -1088,7 +1150,7 @@ public class Connection {
         this.frame.setPendingCommand(_c.CMD_UPDATE_STACK);
     }
 
-    private final void updateStackTopBasic (Value value, String fieldName, long row) throws ConnException
+    private final void updateStackTopBasic (Value value, String fieldName, long row) throws IOException
     {
         assert ! value.type().equals (ValueType.textType ());
         assert ! (value.type ().isArray() || value.type().isField() || value.type().isTable());
@@ -1124,7 +1186,7 @@ public class Connection {
        this.frame.setPendingCommand(_c.CMD_UPDATE_STACK);
     }
 
-    private final void updateStackTopBasicArray (Value[] values, long arrayOffset) throws ConnException
+    private final void updateStackTopBasicArray (Value[] values, long arrayOffset) throws IOException
     {
         assert (values != null) && (values.length > 0);
 
@@ -1178,7 +1240,7 @@ public class Connection {
         }
     }
 
-    private final void updateStackTopBasicArray (Value[] values, long arrayOffset, String fieldName, long row) throws ConnException
+    private final void updateStackTopBasicArray (Value[] values, long arrayOffset, String fieldName, long row) throws IOException
     {
            assert (values != null) && (values.length > 0);
 
@@ -1244,7 +1306,7 @@ public class Connection {
             }
     }
 
-    private final void updateStackTopText (String value, long textOffset) throws ConnException
+    private final void updateStackTopText (String value, long textOffset) throws IOException
     {
         final byte[] text = value.getBytes (StandardCharsets.UTF_8);
 
@@ -1269,15 +1331,18 @@ public class Connection {
         while (textCount < text.length)
         {
             final int cuCount = utf8CUCount (text[textCount]);
-            if (cuCount == 0)
-                throw new ConnException (CmdResult.GENERAL_ERR);
-
             if (buffer.position () + cuCount + 1 > buffer.capacity ())
             {
                 assert textCount > 0;
                 assert this.frame.hasPendingCommands ();
+                assert buffer.position () + 1 <= buffer.capacity ();
+
+                buffer.put ((byte) 0);
+                this.frame.markBufferPositionValid ();
+                this.frame.setPendingCommand (_c.CMD_UPDATE_STACK);
 
                 this.frame.flushPendingCommand ();
+                this.frame.discardCommandBuffer ();
 
                 buffer = this.frame.getCmdBuffer ();
 
@@ -1285,19 +1350,23 @@ public class Connection {
                 buffer.putShort ((short) ValueType.TEXT);
                 buffer.putLong (textOffset);
             }
-            buffer.put (text, textCount, cuCount);
-            buffer.put ((byte) 0);
-            ++textOffset;
-            textCount += cuCount;
-
-            this.frame.markBufferPositionValid ();
-            this.frame.setPendingCommand (_c.CMD_UPDATE_STACK);
+            else
+            {
+                buffer.put (text, textCount, cuCount);
+                ++textOffset;
+                textCount += cuCount;
+            }
         }
 
         assert textCount == text.length;
+        assert buffer.position () + 1 <= buffer.capacity ();
+
+        buffer.put ((byte) 0);
+        this.frame.markBufferPositionValid ();
+        this.frame.setPendingCommand (_c.CMD_UPDATE_STACK);
     }
 
-    private final void updateStackTopText (String value, long textOffset, String fieldName, long row) throws ConnException
+    private final void updateStackTopText (String value, long textOffset, String fieldName, long row) throws IOException
     {
         final byte[] text = value.getBytes (StandardCharsets.UTF_8);
         final byte[] f = fieldName.getBytes (StandardCharsets.UTF_8);
@@ -1372,7 +1441,7 @@ public class Connection {
         if (reqSize > this.frame.maxCmdSize ())
             throw new ConnException (CmdResult.LARGE_ARGS);
 
-        this.frame.discardPendingCommand ();
+        this.frame.discardCommandBuffer ();
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
         buffer.put (field.getBytes (StandardCharsets.UTF_8));
@@ -1495,7 +1564,7 @@ public class Connection {
            if ((field == 0)
                || (buffer.position () >= this.frame.getCmdLastPosition ()))
            {
-               this.frame.discardPendingCommand ();
+               this.frame.discardCommandBuffer ();
                buffer = this.frame.getCmdBuffer ();
 
                buffer.putShort ((short) field);     //Field hint
@@ -1534,7 +1603,9 @@ public class Connection {
                   || (fieldsCount != (buffer.getShort () & 0x0000FFFF))
                   || (field != (buffer.getShort () & 0x0000FFFF)))
                {
-                   throw new ConnException (CmdResult.GENERAL_ERR, "Unexpected answer format received from server.");
+                   throw new ConnException (CmdResult.GENERAL_ERR,
+                                            "Unexpected answer format received"
+                                            + " from server.");
                }
            }
 
@@ -1545,15 +1616,16 @@ public class Connection {
 
            assert startOffset < endOffset;
 
-           fields[field] = new TableFieldType (new String (buffer.array (),
-                                                            startOffset,
-                                                            endOffset - startOffset,
-                                                            StandardCharsets.UTF_8),
-                                               ValueType.create (buffer.getShort ()));
+           fields[field] = new TableFieldType (
+                                   new String (buffer.array (),
+                                               startOffset,
+                                               endOffset - startOffset,
+                                               StandardCharsets.UTF_8),
+                                   ValueType.create (buffer.getShort ())
+                                              );
        } while (++field < fieldsCount);
 
-       this.frame.discardPendingCommand ();
-
+       this.frame.discardCommandBuffer ();
        if ((fields != null) && (fields.length > 0))
            return ValueType.create (fields);
 
@@ -1679,7 +1751,7 @@ public class Connection {
      */
     public static final byte USER                  = 1;
 
-    public static final String IGNORE_FIELD        = null;
+    public static final String IGNORE_FIELD        = "";
     public static final long   IGNORE_ROW          = -1;
     public static final long   IGNORE_OFFSET       = -1;
 

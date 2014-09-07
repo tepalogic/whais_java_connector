@@ -1,15 +1,19 @@
 package net.whais.Client;
 
-public class BoolValue extends Value implements Comparable<BoolValue>
+class BoolValue extends Value
 {
-    public BoolValue (boolean value)
+    BoolValue (boolean value)
     {
+        super (ValueType.boolType());
+
         this.value      = value;
         this.nullValue  = false;
     }
-    
-    public BoolValue (String s)
+
+    BoolValue (String s)
     {
+        super (ValueType.boolType());
+
         if ((s == null) || (s.length () == 0))
         {
             this.value      = false;
@@ -18,43 +22,37 @@ public class BoolValue extends Value implements Comparable<BoolValue>
         else
         {
             this.nullValue = false;
-            this.value = (s.equals ("1") 
+            this.value = (s.equals ("1")
+                          || s.toLowerCase().equals ("T")
                           || s.toLowerCase().equals ("true"));
         }
     }
-    
-    public BoolValue ()
-    {
-        this.value      = false;
-        this.nullValue  = true;
-    }
-    
+
     @Override
-    public int compareTo (BoolValue o)
+    public boolean equals (Object p)
     {
-        if (this.isNull ())
-        {
-            if (o.isNull ())
-                return 0;
-            
-            return -1;
-        }
-        
-        if (o.isNull ())
-            return 1;
-        
-        if (this.value)
-            return o.value ? 0 : 1;
-        
-        return o.value ? -1 : 0;
+        if (this == p)
+            return true;
+
+        else if ( ! (p instanceof BoolValue))
+            return false;
+
+        final BoolValue o = (BoolValue) p;
+        if (this.isNull () != o.isNull())
+            return false;
+
+        else if (this.isNull())
+            return true;
+
+        return this.value == o.value;
     }
 
     @Override
     public String toString ()
     {
-        if (isNull ())
+        if (this.isNull ())
             return "";
-        
+
         else
             return this.value ? "1" : "0";
     }
@@ -65,12 +63,6 @@ public class BoolValue extends Value implements Comparable<BoolValue>
         return this.nullValue;
     }
 
-    @Override
-    public ValueType type () throws ConnException
-    {
-        return ValueType.boolType ();
-    }
-    
     private final boolean   value;
     private final boolean   nullValue;
 }

@@ -94,6 +94,7 @@ public class ValueType
      *
      * @param type The raw type of the value.
      * @return A ValueType class instance based on the specified types.
+     * @throws ConnException
      *
      * @since 1.0
      * @see #BOOL

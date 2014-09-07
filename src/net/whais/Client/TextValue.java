@@ -1,54 +1,39 @@
 package net.whais.Client;
 
 
-public class TextValue extends Value implements Comparable<TextValue>
+class TextValue extends Value
 {
-    public TextValue (String value)
+    TextValue (String value)
     {
+        super (ValueType.textType ());
         this.value = value;
     }
-    
-    public TextValue ()
+
+    @Override
+    public boolean equals (Object p)
     {
-        this (null);
+        if (this == p)
+            return true;
+
+        else if ( ! (p instanceof TextValue))
+            return false;
+
+        return this.toString().equals (p.toString());
     }
-    
+
     @Override
     public String toString ()
     {
-        if (isNull ())
+        if (this.isNull ())
             return "";
-        
-        return value;
+
+        return this.value;
     }
 
     @Override
     public boolean isNull ()
     {
-        return (value == null) || (value.length () == 0);
-    }
-
-    @Override
-    public ValueType type () throws ConnException
-    {
-        return ValueType.textType ();
-    }
-    
-    @Override
-    public int compareTo (TextValue o)
-    {
-        if (this.isNull ())
-        {
-            if (o.isNull ())
-                return 0;
-            
-            return -1;
-        }
-        
-        if (o.isNull ())
-            return 1;
-        
-        return this.value.compareTo (o.value);
+        return (this.value == null) || (this.value.length () == 0);
     }
 
     private String value;

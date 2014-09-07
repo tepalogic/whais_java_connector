@@ -4,88 +4,126 @@ import java.util.Vector;
 
 public class ArrayValue extends Value
 {
-    public ArrayValue (Value[] values) throws ConnException
+    ArrayValue (ValueType type, Value[] values) throws ConnException
     {
+        super (type);
+
         if (values == null)
         {
             this.values = null;
             return ;
         }
-        
+
         this.values = new Vector<Value> ();
         for (int i = 0; i < values.length; ++i)
         {
             if ((values[i] == null) || values[i].isNull ())
                 throw new ConnException (CmdResult.INVALID_ARGS, "An array should not have a null value.");
-            
-            else if ((i > 0) && ! values[i].type ().equals (values[i - 1].type ()))
-                throw new ConnException (CmdResult.INVALID_ARGS, "All values of an array should be of the same type.");
+
+            else if (! type.equals(values[i].type ()))
+            {
+                throw new ConnException (CmdResult.INVALID_ARGS,
+                                         "Cannot add a value of type " + values[i].type ().toString () +
+                                         " to an array of type " + type.toString () + '.');
+            }
 
             this.values.add (values[i]);
         }
     }
-    
-    public ArrayValue () throws ConnException
+
+    ArrayValue (ValueType type) throws ConnException
     {
-        this (null);
+        this (type, null);
     }
-    
+
+    @Override
+    public boolean equals (Object p)
+    {
+        if (this == p)
+            return true;
+
+        else if ( ! (p instanceof ArrayValue))
+            return false;
+
+        final ArrayValue o = (ArrayValue) p;
+        if (this.isNull () != o.isNull())
+            return false;
+
+        else if (this.isNull())
+            return true;
+
+        else if (this.values.size () != o.values.size ())
+            return false;
+
+        for (int i = 0; i < this.values.size (); ++i)
+        {
+            if (! this.get(i).equals (o.get(i)))
+                return false;
+        }
+
+        return true;
+    }
+
     public void add (Value v) throws ConnException
     {
         if (v.isNull ())
-            throw new ConnException (CmdResult.INVALID_ARGS, "An array should not have a null value.");
-        
+            throw new ConnException (CmdResult.INVALID_ARGS, "Cannot add a null value to an array.");
+
         if (! v.type ().isBasic ()
             || v.type ().equals (ValueType.textType ()))
         {
-            throw new ConnException (CmdResult.INVALID_ARGS, "An array can hold only basic values.");
+            throw new ConnException (CmdResult.INVALID_ARGS, "An array may hold only basic values.");
         }
-        
+
         if (this.values == null)
         {
             this.values = new Vector<Value> ();
             this.values.add (v);
-            
+
             return ;
         }
-        
-        if ( ! this.values.get (0).type ().equals (v.type ()))
-            throw new ConnException (CmdResult.INVALID_ARGS, "An array can hold only basic values.");
-        
+
+        if (ValueType.create (this.type ().getBaseType ()).equals(v.type ()))
+        {
+            throw new ConnException (CmdResult.INVALID_ARGS,
+                                     "Cannot add a value of type " + v.type ().toString () +
+                                     " to an array of type " + this.type ().toString () + '.');
+        }
+
         this.values.add (v);
     }
-    
+
     public Value get (int i)
     {
         if ((this.values == null) || (this.values.size () <= i))
             throw new ArrayIndexOutOfBoundsException (i);
-        
-        return values.get (i);
+
+        return this.values.get (i);
     }
-    
+
     public Value remove (int i)
     {
         if ((this.values == null) || (this.values.size () <= i))
             throw new ArrayIndexOutOfBoundsException (i);
-        
-        return values.remove (i);
+
+        return this.values.remove (i);
     }
 
     public Value[] toArray ()
     {
-        if (isNull ())
+        if (this.isNull ())
             return null;
-        
-        return (Value[]) values.toArray ();
+
+        return (Value[]) this.values.toArray ();
     }
-    
+
     @Override
     public String toString ()
     {
-        if (isNull ())
+        if (this.isNull ())
             return "";
-        
-        return values.toString ();
+
+        return this.values.toString ();
     }
 
     @Override
@@ -94,14 +132,5 @@ public class ArrayValue extends Value
         return (this.values == null) || (this.values.size () == 0);
     }
 
-    @Override
-    public ValueType type () throws ConnException
-    {
-        if (this.isNull ())
-            return ValueType.create (ValueType.ARRAY_MASK | ValueType.TYPE_NOTSET);
-        
-        return ValueType.create (this.values.get (0).type ().getTypeId() & ValueType.ARRAY_MASK);
-    }
-    
     private Vector<Value> values;
 }

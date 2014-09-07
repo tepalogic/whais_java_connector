@@ -39,11 +39,11 @@ public class CommnandLine
         if (this.password == null)
             this.password = (this.userId == 0) ? "root_test_password" : "test_password";
 
-        System.out.println ( "Hostname: " + this.hostname);
-        System.out.println ( "Port: " + this.port);
-        System.out.println ( "Database: " + this.database);
-        System.out.println ( "User: " + this.userId);
-        System.out.println ( "Password: " + this.password);
+        System.out.println ( "Hostname:     " + this.hostname);
+        System.out.println ( "Port:         " + this.port);
+        System.out.println ( "Database:     " + this.database);
+        System.out.println ( "User:         " + this.userId);
+        System.out.println ( "Password:     " + this.password);
         System.out.println ( "maxFrameSize: " + this.frameSize);
     }
 

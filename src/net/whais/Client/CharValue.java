@@ -1,17 +1,11 @@
 package net.whais.Client;
 
-public class CharValue extends Value implements Comparable<CharValue>
+class CharValue extends Value
 {
-    public CharValue (int codePoint) throws ConnException
+    CharValue (String v) throws ConnException
     {
-        if (codePoint < 0)
-            throw new ConnException (CmdResult.INVALID_ARGS, "Invalid code point value.");
-        
-        this.value = codePoint;
-    }
-    
-    public CharValue (String v) throws ConnException
-    {
+        super (ValueType.charType ());
+
         if ((v == null)
             || (v.length () == 0))
         {
@@ -20,39 +14,32 @@ public class CharValue extends Value implements Comparable<CharValue>
         }
 
         if (v.codePointCount (0, v.length ()) > 1)
-            throw new ConnException (CmdResult.INVALID_ARGS, "The string used to construct a character value contains more than one code points");
-        
+        {
+            throw new ConnException (CmdResult.INVALID_ARGS,
+                                     "The string used to construct a character value contains more than one code points");
+        }
+
         this.value = v.codePointAt(0);
     }
-    
-    public CharValue ()
-    {
-        this.value = 0;
-    }
-    
+
     @Override
-    public int compareTo (CharValue o)
+    public boolean equals (Object p)
     {
-        if (this.isNull ())
-        {
-            if (o.isNull ())
-                return 0;
-            
-            return -1;
-        }
-        
-        if (o.isNull ())
-            return 1;
-        
-        return this.value - o.value;
+        if (this == p)
+            return true;
+
+        else if ( ! (p instanceof CharValue))
+            return false;
+
+        return this.getCodePoint () == ((CharValue) p).getCodePoint ();
     }
 
     @Override
     public String toString ()
     {
-        if (isNull ())
+        if (this.isNull ())
         return "";
-        
+
         return new String (Character.toChars (this.value));
     }
 
@@ -62,11 +49,10 @@ public class CharValue extends Value implements Comparable<CharValue>
         return this.value == 0;
     }
 
-    @Override
-    public ValueType type () throws ConnException
+    public final int getCodePoint ()
     {
-        return ValueType.charType ();
+        return this.value;
     }
-    
+
     private final int value;
 }

@@ -79,7 +79,7 @@ class CommunicationFrame
         this.oStream.write (this.rawFrame.array (), 0, this.rawFrameSize);
 
         //Make sure we have a clean status
-        this.discardPendingCommand ();
+        this.discardCommandBuffer ();
     }
 
     final void Close ()
@@ -153,13 +153,17 @@ class CommunicationFrame
         this.sendCommand (cmd, true);
     }
 
-    final void flushPendingCommand ()
+    final void flushPendingCommand () throws IOException
     {
         if ( ! this.hasPendingCommands ())
             return ;
+
+        this.sendCommand (this.pendingCommand);
+
+        this.pendingCommand = _c.CMD_INVALID;
     }
 
-    final void discardPendingCommand ()
+    final void discardCommandBuffer ()
     {
         this.rawFrame.position (this.cipher.metadataSize ());
         this.rawFrameSize    = this.rawFrame.position ();
@@ -254,6 +258,10 @@ class CommunicationFrame
             final int count = this.iStream.read (this.rawFrame.array (),
                     bytesRead,
                     _c.FRAME_HDR_SIZE - bytesRead);
+
+            if (count < 0)
+                throw new ConnException (CmdResult.DROPPED);
+
             bytesRead += count;
         }
 
@@ -276,6 +284,10 @@ class CommunicationFrame
                     final int count = this.iStream.read (this.rawFrame.array (),
                             bytesRead,
                             expected - bytesRead);
+
+                    if (count < 0)
+                        throw new ConnException (CmdResult.DROPPED);
+
                     bytesRead += count;
                 }
                 this.rawFrameSize = expected;
