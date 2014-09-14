@@ -111,6 +111,11 @@ public abstract class Value
         return createArray (type, "");
     }
 
+    static FieldValue createField (ValueType type) throws ConnException
+    {
+        return new FieldValue (type);
+    }
+
     public static TableValue createTable (TableFieldType[] fields) throws ConnException
     {
         if ((fields == null) || (fields.length == 0))

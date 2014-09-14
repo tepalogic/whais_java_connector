@@ -38,7 +38,8 @@ class IntegerValue extends Value
         }
         catch (Throwable e)
         {
-            return false;
+            System.err.println ("Unexpected error!");
+            System.exit (-1);
         }
 
         if (this.isNull () != o.isNull())

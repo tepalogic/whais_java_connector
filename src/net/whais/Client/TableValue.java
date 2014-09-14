@@ -87,7 +87,34 @@ public class TableValue extends Value
         if (this.isNull ())
             return "";
 
-        return this.values.toString ();
+        final int rowsCount = this.values.size ();
+        assert (rowsCount > 0);
+
+        final StringBuilder resultBuilder = new StringBuilder ();
+        for (int r = 0; r < rowsCount; ++r)
+        {
+            int f = 0;
+            resultBuilder.append ('[');
+            for (TableFieldType field : this.fields)
+            {
+                resultBuilder.append (field.getName ());
+                resultBuilder.append (':');
+                if (this.values.get (r).get (f) != null)
+                    resultBuilder.append (this.values.get (r)
+                                                     .get (f).toString ());
+                if (f < this.fields.length - 1)
+                    resultBuilder.append(", ");
+                else
+                    resultBuilder.append (']');
+
+               ++f;
+            }
+
+            if (r < rowsCount - 1)
+                resultBuilder.append (", ");
+        }
+
+        return resultBuilder.toString ();
     }
 
     @Override

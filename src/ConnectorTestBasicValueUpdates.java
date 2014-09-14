@@ -12,14 +12,26 @@ public class ConnectorTestBasicValueUpdates
 {
     class TestValue
     {
-        public TestValue (ValueType type, String ... values)
+        public TestValue (ValueType type, String value)
         {
             this.type   = type;
-            this.values = values;
+            this.value = value;
+        }
+
+        Value getValue ()
+        {
+            try
+            {
+                return Value.createBasic (this.type, this.value);
+            }
+            catch (ConnException e)
+            {
+                return null;
+            }
         }
 
         final ValueType type;
-        final String[]  values;
+        final String    value;
     };
 
     ConnectorTestBasicValueUpdates () throws ConnException
@@ -827,8 +839,15 @@ public class ConnectorTestBasicValueUpdates
         {
             c.pushStackValue (this.testValues[i].type);
             c.flushStackUpdates ();
-            c.updateStackTop (Value.createBasic (this.testValues[i].type,
-                                                 this.testValues[i].values[0]));
+
+            if (i < this.testValues.length / 2)
+                c.updateStackTop (this.testValues[i].getValue ());
+            else
+            {
+                c.updateStackTop (this.testValues[i].getValue (),
+                                  Connection.IGNORE_FIELD,
+                                  Connection.IGNORE_ROW);
+            }
             c.flushStackUpdates ();
         }
 
@@ -852,9 +871,11 @@ public class ConnectorTestBasicValueUpdates
                 return false;
             }
 
-            Value value = c.retrieveStackTop ();
-            Value refValue = Value.createBasic (this.testValues[i].type,
-                                                this.testValues[i].values[0]);
+            Value value = (i < this.testValues.length / 2 )
+                           ? c.retrieveStackTop ()
+                           : c.retrieveStackTop(Connection.IGNORE_FIELD,
+                                                Connection.IGNORE_ROW);
+            Value refValue = this.testValues[i].getValue ();
             if (! (value.equals (refValue) && refValue.equals (value)))
             {
                 System.out.println ("For test value " + i
@@ -877,8 +898,17 @@ public class ConnectorTestBasicValueUpdates
         for ( int i = 0; i < this.testValues.length; ++i)
         {
             c.pushStackValue (this.testValues[i].type);
-            c.updateStackTop (Value.createBasic (this.testValues[i].type,
-                                                 this.testValues[i].values[0]));
+
+            if (i < this.testValues.length / 2)
+                c.updateStackTop (this.testValues[i].getValue());
+
+            else
+            {
+                c.updateStackTop (this.testValues[i].getValue(),
+                                  Connection.IGNORE_FIELD,
+                                  Connection.IGNORE_ROW);
+            }
+
         }
 
         for ( int i = this.testValues.length - 1; i >= 0; --i)
@@ -895,15 +925,17 @@ public class ConnectorTestBasicValueUpdates
                 return false;
             }
 
-            Value value = c.retrieveStackTop ();
-            Value refValue = Value.createBasic (this.testValues[i].type,
-                                                this.testValues[i].values[0]);
+            Value value = (i < this.testValues.length / 2 )
+                           ? c.retrieveStackTop ()
+                           : c.retrieveStackTop(Connection.IGNORE_FIELD,
+                                                Connection.IGNORE_ROW);
+            Value refValue = this.testValues[i].getValue();
 
             Value wrngNull = Value.createBasic (this.testValues[i].type);
             Value wrngNull2 = Value.createBasic (this.testValues[i].type);
 
             Value wrng = Value.createBasic (this.testValues[i].type,
-                                            this.testValues[i].values[0].substring (1));
+                                            this.testValues[i].value.substring (1));
             if (! (value.equals (refValue) && refValue.equals (value)))
             {
                 System.out.println ("For test value " + i

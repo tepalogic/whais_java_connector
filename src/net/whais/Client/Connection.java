@@ -242,7 +242,7 @@ public class Connection {
         do
         {
             if ((glbIndex == 0)
-                || (buffer.position () >= this.frame.getCmdLastPosition ()))
+                || (buffer.position () >= this.frame.getLastPosition ()))
             {
                 this.frame.discardCommandBuffer ();
                 buffer = this.frame.getCmdBuffer ();
@@ -352,7 +352,7 @@ public class Connection {
         do
         {
             if ((procIndex == 0)
-                || (buffer.position () >= this.frame.getCmdLastPosition ()))
+                || (buffer.position () >= this.frame.getLastPosition ()))
             {
                 this.frame.discardCommandBuffer ();
                 buffer = this.frame.getCmdBuffer ();
@@ -435,7 +435,7 @@ public class Connection {
         int param = 0, paramsCount = 0;
         do
         {
-            if ((paramTypes == null) || (b.position() >= this.frame.getCmdLastPosition ()))
+            if ((paramTypes == null) || (b.position() >= this.frame.getLastPosition ()))
             {
                 this.frame.discardCommandBuffer ();
                 b = this.frame.getCmdBuffer ();
@@ -541,7 +541,7 @@ public class Connection {
         }
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (this.frame.getCmdLastPosition ());
+        buffer.position (this.frame.getLastPosition ());
 
         buffer.put (_c.CMD_UPDATE_FUNC_PUSH);
         buffer.putShort (type.getTypeId ());
@@ -593,7 +593,7 @@ public class Connection {
        }
 
        ByteBuffer buffer = this.frame.getCmdBuffer ();
-       buffer.position (this.frame.getCmdLastPosition ());
+       buffer.position (this.frame.getLastPosition ());
 
        buffer.put (_c.CMD_UPDATE_FUNC_POP);
        buffer.putInt (count);
@@ -658,20 +658,24 @@ public class Connection {
         }
     }
 
-    public void updateStackTop (Value val,
-                                String fieldName,
-                                long row) throws IOException
+    public void updateStackTop (Value           val,
+                                String          fieldName,
+                                long            row) throws IOException
     {
+        if (( (fieldName == null) || (fieldName.equals (IGNORE_FIELD)))
+            && (row == IGNORE_ROW))
+        {
+            this.updateStackTop (val);
+            return ;
+        }
+
         if (! this.frame.hasPendingCommands ())
             this.frame.discardCommandBuffer ();
 
         else if (this.frame.getPendingCommand () != _c.CMD_UPDATE_STACK)
             throw new ConnException (CmdResult.INCOMPLETE_CMD);
 
-        if ((fieldName == null) || (fieldName.length () == 0))
-            throw new  ConnException (CmdResult.INVALID_FIELD);
-
-        else if (row < 0)
+        if (row < 0)
             throw new ConnException (CmdResult.INVALID_ROW);
 
        if (val.type ().equals (ValueType.textType ()))
@@ -730,34 +734,46 @@ public class Connection {
         b.position (b.position () + 4);
 
         short type = b.getShort ();
-        if ( ! ValueType.isTable (type) && ! ValueType.isField (type))
+        if ( ! (ValueType.isTable (type) || ValueType.isField (type)))
             return -1;
 
         return b.getLong ();
     }
 
-    public Value retrieveStackTop (final long row) throws IOException
+    Value retrieveStackTop (final long row) throws IOException
     {
         if (this.frame.hasPendingCommands ())
             throw new ConnException(CmdResult.INCOMPLETE_CMD);
 
         if (this.frame.getCachedResponse () != _c.CMD_INVALID_RSP)
-            this.refreshReadCache (IGNORE_FIELD, row, IGNORE_OFFSET, IGNORE_OFFSET);
+        {
+            this.refreshReadCache (IGNORE_FIELD,
+                                   row,
+                                   IGNORE_OFFSET,
+                                   IGNORE_OFFSET);
+        }
 
         ByteBuffer b = this.frame.getCmdBuffer ();
         b.position (b.position () + 4);
-
         short type = b.getShort ();
-        if ( ValueType.isTable (type))
+
+        assert ( ! ValueType.isTable (type));
+
+        if ( ! ValueType.isField (type))
         {
-            throw new ConnException (CmdResult.INVALID_FIELD);
-        }
-        else if ( ! ValueType.isField (type))
+            if (row == IGNORE_ROW)
+                return this.retrieveStackTop ();
+
             throw new ConnException (CmdResult.INVALID_ROW);
+        }
 
         if ((b = this.skipUntilCachedRow(row)) == null)
         {
-            this.refreshReadCache (IGNORE_FIELD, row, IGNORE_OFFSET, IGNORE_OFFSET);
+            this.refreshReadCache (IGNORE_FIELD,
+                                   row,
+                                   IGNORE_OFFSET,
+                                   IGNORE_OFFSET);
+
             if ((b = this.skipUntilCachedRow(row)) == null)
                 throw new ConnException (CmdResult.GENERAL_ERR);
         }
@@ -767,7 +783,9 @@ public class Connection {
             long elementsCount = b.getLong ();
             type = (short) ValueType.getBaseType (type);
 
-            ArrayValue result = Value.createArray (ValueType.create (type | ValueType.ARRAY_MASK));
+            ArrayValue result = Value.createArray (
+                            ValueType.create (type | ValueType.ARRAY_MASK)
+                                                  );
 
             if (elementsCount == 0)
                 return result;
@@ -788,9 +806,13 @@ public class Connection {
 
                 while (arrayOffset < elementsCount)
                 {
-                    if (b.position() >= b.capacity ())
+                    if (b.position() >= this.frame.getLastPosition ())
                     {
-                        this.refreshReadCache (IGNORE_FIELD, row, arrayOffset, IGNORE_OFFSET);
+                        this.refreshReadCache (IGNORE_FIELD,
+                                               row,
+                                               arrayOffset,
+                                               IGNORE_OFFSET);
+
                         if ((b = this.skipUntilCachedRow(row)) == null)
                             throw new ConnException (CmdResult.GENERAL_ERR);
 
@@ -800,11 +822,12 @@ public class Connection {
                             throw new ConnException (CmdResult.GENERAL_ERR);
                         }
                     }
-                    result.add (Value.createBasic (ValueType.create (type), b.array(), b.position ()));
+                    result.add (Value.createBasic (ValueType.create (type),
+                                                   b.array(),
+                                                   b.position ()));
 
                     while (b.get () != 0)
                         ; //Just let the buffer advance
-
                     ++arrayOffset;
                 }
             }
@@ -822,7 +845,10 @@ public class Connection {
             if (charOffset != 0)
             {
                 charOffset = 0;
-                this.refreshReadCache (IGNORE_FIELD, row, IGNORE_OFFSET, 0);
+                this.refreshReadCache (IGNORE_FIELD,
+                                       row,
+                                       IGNORE_OFFSET,
+                                       0);
                 if ((b = this.skipUntilCachedRow (row)) == null)
                     throw new ConnException (CmdResult.GENERAL_ERR);
 
@@ -834,9 +860,12 @@ public class Connection {
 
                 while (charOffset < charsCount)
                 {
-                    if (b.position() >= b.capacity ())
+                    if (b.position() >= this.frame.getLastPosition ())
                     {
-                        this.refreshReadCache (IGNORE_FIELD, row, IGNORE_OFFSET, charOffset);
+                        this.refreshReadCache (IGNORE_FIELD,
+                                               row,
+                                               IGNORE_OFFSET,
+                                               charOffset);
                         if ((b = this.skipUntilCachedRow (row)) == null)
                             throw new ConnException (CmdResult.GENERAL_ERR);
 
@@ -863,15 +892,22 @@ public class Connection {
             return Value.createBasic (ValueType.textType (), text);
         }
 
-        return Value.createBasic (ValueType.create (ValueType.getBaseType (type)),
+        return Value.createBasic (ValueType.create (
+                                                ValueType.getBaseType (type)
+                                                   ),
                                   b.array (),
                                   b.position ());
     }
 
-    public Value retrieveStackTop (final String field, final long row) throws IOException
+    public Value retrieveStackTop (final String field,
+                                   final long   row) throws IOException
     {
         if (field == null || field.equals (IGNORE_FIELD))
-            return this.retrieveStackTop (row);
+        {
+            return (row != IGNORE_ROW)
+                    ? this.retrieveStackTop (row)
+                    : this.retrieveStackTop ();
+        }
 
         if (this.frame.hasPendingCommands ())
             throw new ConnException(CmdResult.INCOMPLETE_CMD);
@@ -882,8 +918,10 @@ public class Connection {
         ByteBuffer b = this.frame.getCmdBuffer ();
         b.position (b.position () + 4);
 
+        assert (field != null && ! field.equals (IGNORE_FIELD));
+
         if ( ! ValueType.isTable (b.getShort ()))
-            throw new ConnException (CmdResult.INVALID_FIELD, "The server stack value is not a table.");
+            throw new ConnException (CmdResult.INVALID_FIELD);
 
         if ((b = this.skipUntilFieldValue(field, row)) == null)
         {
@@ -920,9 +958,13 @@ public class Connection {
 
                 while (arrayOffset < elementsCount)
                 {
-                    if (b.position() >= b.capacity ())
+                    if (b.position() >= this.frame.getLastPosition ())
                     {
-                        this.refreshReadCache (field, row, arrayOffset, IGNORE_OFFSET);
+                        this.refreshReadCache (field,
+                                               row,
+                                               arrayOffset,
+                                               IGNORE_OFFSET);
+
                         if ((b = this.skipUntilFieldValue(field, row)) == null)
                             throw new ConnException (CmdResult.GENERAL_ERR);
 
@@ -933,7 +975,9 @@ public class Connection {
                             throw new ConnException (CmdResult.GENERAL_ERR);
                         }
                     }
-                    result.add (Value.createBasic (type, b.array(), b.position ()));
+                    result.add (Value.createBasic (type,
+                                                   b.array(),
+                                                   b.position ()));
 
                     while (b.get () != 0)
                         ; //Just let the buffer advance
@@ -969,7 +1013,7 @@ public class Connection {
 
                 while (charOffset < charsCount)
                 {
-                    if (b.position() >= b.capacity ())
+                    if (b.position() >= this.frame.getLastPosition ())
                     {
                         this.refreshReadCache (field, row, IGNORE_OFFSET, charOffset);
                         if ((b = this.skipUntilFieldValue(field, row)) == null)
@@ -1016,13 +1060,45 @@ public class Connection {
         buffer.position (buffer.position () + 4);
 
         ValueType type = ValueType.create (buffer.getShort ());
-        if (type.isTable () || type.isField ())
+        if (type.isTable ())
         {
-            throw new ConnException (
-                    CmdResult.LARGE_RESPONSE,
-                    "The server stack value is either a table or a field. "
-                      + "Those values may be read row by by and field by field."
-                                     );
+            ValueType tableType = this.describeStackTop ();
+            final TableFieldType[] fields = tableType.getFields ();
+
+            assert fields.length >= 0;
+
+            TableValue result = Value.createTable (fields);
+
+            final long rowsCount = this.retrieveStackTopRowsCount ();
+
+            assert (rowsCount >= 0);
+
+            for (long r = 0; r < rowsCount; ++ r)
+            {
+                for (TableFieldType f : fields)
+                {
+                    Value cellValue = this.retrieveStackTop (f.getName (), r);
+                    result.put (cellValue, f.getName(), (int) r);
+                }
+            }
+
+            return result;
+        }
+        else if (type.isField ())
+        {
+            FieldValue result = Value.createField (type);
+
+            final long rowsCount = this.retrieveStackTopRowsCount ();
+
+            assert (rowsCount >= 0);
+
+            for (long r = 0; r < rowsCount; ++ r)
+            {
+                final Value v = this.retrieveStackTop (r);
+                result.add (v.isNull () ? null : v);
+            }
+
+            return result;
         }
         else if (type.isArray ())
         {
@@ -1032,16 +1108,16 @@ public class Connection {
             final long elementsCount = buffer.getLong ();
             long currentOffset = buffer.getLong ();
 
-            while (currentOffset < elementsCount)
+            while ((0 <= currentOffset) && (currentOffset < elementsCount))
             {
-                if (buffer.position ()  >= buffer.capacity())
+                if (buffer.position ()  >= this.frame.getLastPosition ())
                 {
                     this.refreshReadCache (IGNORE_FIELD,
                                            IGNORE_ROW,
                                            IGNORE_OFFSET,
                                            currentOffset);
                     buffer = this.frame.getCmdBuffer ();
-                    buffer.position (buffer.position () + 4);
+                    buffer.position (buffer.position () + 4 + 2);
 
                     if ((elementsCount != buffer.getLong ())
                         || (currentOffset != buffer.getLong ()))
@@ -1129,7 +1205,7 @@ public class Connection {
         assert ! (value.type ().isArray() || value.type().isField() || value.type().isTable());
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (this.frame.getCmdLastPosition ());
+        buffer.position (this.frame.getLastPosition ());
 
         final byte[] v = value.toString ().getBytes (StandardCharsets.UTF_8);
         if (buffer.position () + 1 + 2 + v.length + 1 > buffer.capacity ())
@@ -1150,7 +1226,9 @@ public class Connection {
         this.frame.setPendingCommand(_c.CMD_UPDATE_STACK);
     }
 
-    private final void updateStackTopBasic (Value value, String fieldName, long row) throws IOException
+    private final void updateStackTopBasic (Value       value,
+                                            String      fieldName,
+                                            long        row) throws IOException
     {
         assert ! value.type().equals (ValueType.textType ());
         assert ! (value.type ().isArray() || value.type().isField() || value.type().isTable());
@@ -1160,7 +1238,7 @@ public class Connection {
         byte[] v = value.toString ().getBytes (StandardCharsets.UTF_8);
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (this.frame.getCmdLastPosition ());
+        buffer.position (this.frame.getLastPosition ());
 
         final int spaceReq = 1 + 2 + f.length + 1 + 8 + v.length + 1;
         if (buffer.position () + spaceReq > buffer.capacity ())
@@ -1175,7 +1253,7 @@ public class Connection {
         }
 
        buffer.put (_c.CMD_UPDATE_FUNC_CHTOP);
-       buffer.putShort ((short) (value.type ().getTypeId () & ValueType.FIELD_MASK));
+       buffer.putShort ((short) (value.type ().getTypeId () | ValueType.FIELD_MASK));
        buffer.put (f);
        buffer.put((byte) 0);
        buffer.putLong (row);
@@ -1186,20 +1264,26 @@ public class Connection {
        this.frame.setPendingCommand(_c.CMD_UPDATE_STACK);
     }
 
-    private final void updateStackTopBasicArray (Value[] values, long arrayOffset) throws IOException
+    private final void updateStackTopBasicArray (Value[] values,
+                                                 long    arrayOffset) throws IOException
     {
         assert (values != null) && (values.length > 0);
 
-        for (int i = 0; i < values.length; ++i)
+        for (int i = 1; i < values.length; ++i)
         {
-            if (values[i].type ().equals (values[i - 1].type ()))
-                throw new ConnException (CmdResult.INVALID_ARGS, "The array's elements used to update the stack top are of different types.");
+            if ( ! values[i].type ().equals (values[i - 1].type ()))
+            {
+                throw new ConnException (CmdResult.INVALID_ARGS,
+                                        "The array's elements used to update"
+                                         + " the stack top are of different"
+                                         + " types.");
+            }
         }
 
         assert values[0].type ().isBasic ();
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (this.frame.getCmdLastPosition ());
+        buffer.position (this.frame.getLastPosition ());
 
         int subCmdOffset = buffer.position (), count = 0;
         for (Value value : values)
@@ -1224,7 +1308,7 @@ public class Connection {
             if (count++ == 0)
             {
                 buffer.put (_c.CMD_UPDATE_FUNC_CHTOP);
-                buffer.putShort ((short) (value.type ().getTypeId () & ValueType.ARRAY_MASK));
+                buffer.putShort ((short) (value.type ().getTypeId () | ValueType.ARRAY_MASK));
                 buffer.putShort ((short) count); //Just reserve space
                 buffer.putLong (arrayOffset);
             }
@@ -1240,7 +1324,10 @@ public class Connection {
         }
     }
 
-    private final void updateStackTopBasicArray (Value[] values, long arrayOffset, String fieldName, long row) throws IOException
+    private final void updateStackTopBasicArray (Value[] values,
+                                                 long    arrayOffset,
+                                                 String  fieldName,
+                                                 long    row) throws IOException
     {
            assert (values != null) && (values.length > 0);
 
@@ -1254,7 +1341,7 @@ public class Connection {
 
             byte[] f = fieldName.getBytes (StandardCharsets.UTF_8);
             ByteBuffer buffer = this.frame.getCmdBuffer ();
-            buffer.position (this.frame.getCmdLastPosition ());
+            buffer.position (this.frame.getLastPosition ());
 
             int subCmdOffset = buffer.position (), count = 0;
             for (Value value : values)
@@ -1284,9 +1371,9 @@ public class Connection {
                 if (count++ == 0)
                 {
                     buffer.put (_c.CMD_UPDATE_FUNC_CHTOP);
-                    buffer.putShort ((short) (value.type ().getTypeId () &
-                                                ValueType.ARRAY_MASK   &
-                                                ValueType.FIELD_MASK));
+                    buffer.putShort ((short) (value.type ().getTypeId ()
+                                              | ValueType.ARRAY_MASK
+                                              | ValueType.FIELD_MASK));
                     buffer.put (f);
                     buffer.put ((byte) 0);
                     buffer.putLong (row);
@@ -1311,7 +1398,7 @@ public class Connection {
         final byte[] text = value.getBytes (StandardCharsets.UTF_8);
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (this.frame.getCmdLastPosition ());
+        buffer.position (this.frame.getLastPosition ());
 
         if (buffer.position () + 1 + 2 + 8 + 4 + 1 > buffer.capacity ())
         {
@@ -1335,7 +1422,7 @@ public class Connection {
             {
                 assert textCount > 0;
                 assert this.frame.hasPendingCommands ();
-                assert buffer.position () + 1 <= buffer.capacity ();
+                assert buffer.position () + 1 <= this.frame.getLastPosition ();
 
                 buffer.put ((byte) 0);
                 this.frame.markBufferPositionValid ();
@@ -1359,7 +1446,7 @@ public class Connection {
         }
 
         assert textCount == text.length;
-        assert buffer.position () + 1 <= buffer.capacity ();
+        assert buffer.position () + 1 <= this.frame.getLastPosition ();
 
         buffer.put ((byte) 0);
         this.frame.markBufferPositionValid ();
@@ -1374,7 +1461,7 @@ public class Connection {
         final int minSpace = 1 + 2 + f.length + 1 + 8 + 8 + 4 + 1;
 
         ByteBuffer buffer = this.frame.getCmdBuffer ();
-        buffer.position (this.frame.getCmdLastPosition ());
+        buffer.position (this.frame.getLastPosition ());
 
         if (buffer.position () + minSpace > buffer.capacity ())
         {
@@ -1432,7 +1519,6 @@ public class Connection {
         assert textCount == text.length;
     }
 
-
     private final void refreshReadCache (String field, long rowHint, long arrayOffsetHint, long textOffsetHint) throws IOException
     {
         assert ! this.frame.hasPendingCommands ();
@@ -1482,7 +1568,7 @@ public class Connection {
             {
     	        for (int i = 0; i < fieldsCount; ++i)
     	        {
-    	            if ( ! skipCachedFieldValue (b))
+    	            if ( ! skipCachedFieldValue (b, this.frame.getLastPosition ()))
     	                return null;
     	        }
             }
@@ -1498,7 +1584,7 @@ public class Connection {
                 long offset = b.getLong ();
                 while (offset++ < elemsCount)
                 {
-                    if (b.position () >= b.capacity ())
+                    if (b.position () >= this.frame.getLastPosition ())
                         return null;
 
                     while (b.get () != 0)
@@ -1529,7 +1615,7 @@ public class Connection {
                 ; //Just let the buffer's position to advance.
         }
 
-        if (b.position() >= b.capacity ())
+        if (b.position() >= this.frame.getLastPosition ())
             return null;
 
         return b;
@@ -1542,7 +1628,7 @@ public class Connection {
         if (b == null)
             return null;
 
-        if (! skipUntilCachedField (field, b))
+        if (! skipUntilCachedField (field, b, this.frame.getLastPosition ()))
             return null;
 
         while (b.get () != 0)
@@ -1562,7 +1648,7 @@ public class Connection {
        do
        {
            if ((field == 0)
-               || (buffer.position () >= this.frame.getCmdLastPosition ()))
+               || (buffer.position () >= this.frame.getLastPosition ()))
            {
                this.frame.discardCommandBuffer ();
                buffer = this.frame.getCmdBuffer ();
@@ -1632,9 +1718,10 @@ public class Connection {
        return ValueType.create (type);
     }
 
-    private static final boolean skipCachedFieldValue (ByteBuffer b) throws ConnException
+    private static final boolean skipCachedFieldValue (ByteBuffer b,
+                                                       final int  toPosition) throws ConnException
     {
-        if (b.position () >= b.capacity ())
+        if (b.position () >= toPosition)
             return false;
 
         while (b.get () != 0)
@@ -1653,7 +1740,7 @@ public class Connection {
 
                 while (offset < elemsCount)
                 {
-                   if (b.position () >= b.capacity ())
+                   if (b.position () >= toPosition)
                        return false;
 
                    while (b.get () != 0)
@@ -1684,7 +1771,7 @@ public class Connection {
         return true;
     }
 
-    private static final boolean skipUntilCachedField (String f, ByteBuffer b) throws ConnException
+    private static final boolean skipUntilCachedField (String f, ByteBuffer b, final int toPosition) throws ConnException
     {
         assert f.length () > 0;
 
@@ -1692,7 +1779,7 @@ public class Connection {
 
         do
         {
-            if (b.position () >= b.capacity ())
+            if (b.position () >= toPosition)
                 return false;
 
             int fieldStart = b.position (), offset  = 0;
@@ -1712,7 +1799,7 @@ public class Connection {
             else
                 b.position (fieldStart);
 
-        } while (skipCachedFieldValue (b));
+        } while (skipCachedFieldValue (b, toPosition));
 
         return false;
     }

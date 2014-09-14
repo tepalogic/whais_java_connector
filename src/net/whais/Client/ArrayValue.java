@@ -18,13 +18,20 @@ public class ArrayValue extends Value
         for (int i = 0; i < values.length; ++i)
         {
             if ((values[i] == null) || values[i].isNull ())
-                throw new ConnException (CmdResult.INVALID_ARGS, "An array should not have a null value.");
-
+            {
+                throw new ConnException (
+                                CmdResult.INVALID_ARGS,
+                                "An array should may not hold a null values."
+                                        );
+            }
             else if (! type.equals(values[i].type ()))
             {
-                throw new ConnException (CmdResult.INVALID_ARGS,
-                                         "Cannot add a value of type " + values[i].type ().toString () +
-                                         " to an array of type " + type.toString () + '.');
+                throw new ConnException (
+                        CmdResult.INVALID_ARGS,
+                        "Cannot add a value of type "
+                            + values[i].type ().toString ()
+                            + " to an array of type " + type.toString () + '.'
+                                         );
             }
 
             this.values.add (values[i]);
@@ -46,6 +53,17 @@ public class ArrayValue extends Value
             return false;
 
         final ArrayValue o = (ArrayValue) p;
+
+        try
+        {
+            if ( ! this.type ().equals (o.type ()))
+                return false;
+        }
+        catch (Throwable e)
+        {
+            return false;
+        }
+
         if (this.isNull () != o.isNull())
             return false;
 
@@ -67,12 +85,16 @@ public class ArrayValue extends Value
     public void add (Value v) throws ConnException
     {
         if (v.isNull ())
-            throw new ConnException (CmdResult.INVALID_ARGS, "Cannot add a null value to an array.");
+        {
+            throw new ConnException (CmdResult.INVALID_ARGS,
+                                     "Cannot add a null value to an array.");
+        }
 
         if (! v.type ().isBasic ()
             || v.type ().equals (ValueType.textType ()))
         {
-            throw new ConnException (CmdResult.INVALID_ARGS, "An array may hold only basic values.");
+            throw new ConnException (CmdResult.INVALID_ARGS,
+                                     "An array may hold only basic values.");
         }
 
         if (this.values == null)
@@ -83,13 +105,14 @@ public class ArrayValue extends Value
             return ;
         }
 
-        if (ValueType.create (this.type ().getBaseType ()).equals(v.type ()))
+        if ( ! ValueType.create (this.type ().getBaseType ()).equals(v.type ()))
         {
             throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "Cannot add a value of type " + v.type ().toString () +
-                                     " to an array of type " + this.type ().toString () + '.');
+                                     "Cannot add a value of type "
+                                         + v.type ().toString ()
+                                         + " to an array of type "
+                                         + this.type ().toString () + '.');
         }
-
         this.values.add (v);
     }
 
@@ -111,10 +134,12 @@ public class ArrayValue extends Value
 
     public Value[] toArray ()
     {
+        Value[] result = new Value[this.values.size ()];
+
         if (this.isNull ())
             return null;
 
-        return (Value[]) this.values.toArray ();
+        return this.values.toArray (result);
     }
 
     @Override
@@ -123,7 +148,19 @@ public class ArrayValue extends Value
         if (this.isNull ())
             return "";
 
-        return this.values.toString ();
+        final int count = this.values.size ();
+        assert (count > 0);
+
+        final StringBuilder resultBuilder = new StringBuilder ().append('[');
+        for (int r = 0; r < count; ++r)
+        {
+            resultBuilder.append (this.values.get (r).toString ());
+            if (r < count - 1)
+                resultBuilder.append(", ");
+        }
+        resultBuilder.append (']');
+
+        return resultBuilder.toString ();
     }
 
     @Override

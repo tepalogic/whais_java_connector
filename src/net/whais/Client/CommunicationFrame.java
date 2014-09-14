@@ -100,7 +100,7 @@ class CommunicationFrame
     {
         assert this.rawFrameSize >= this.cipher.metadataSize ();
 
-        return this.maxCmdSize () - this.getCmdLastPosition ();
+        return this.maxCmdSize () - this.getLastPosition ();
     }
 
     final ByteBuffer getCmdBuffer ()
@@ -112,7 +112,7 @@ class CommunicationFrame
         return this.rawFrame;
     }
 
-    final int getCmdLastPosition ()
+    final int getLastPosition ()
     {
         assert this.rawFrameSize >= this.cipher.metadataSize ();
 
@@ -166,6 +166,7 @@ class CommunicationFrame
     final void discardCommandBuffer ()
     {
         this.rawFrame.position (this.cipher.metadataSize ());
+
         this.rawFrameSize    = this.rawFrame.position ();
         this.pendingCommand  = _c.CMD_INVALID;
         this.lastReceivedRsp = _c.CMD_INVALID_RSP;
