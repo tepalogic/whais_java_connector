@@ -1,29 +1,26 @@
 package net.whais.Client;
 
-import java.util.Arrays;
 import java.util.Vector;
 
 public class TableValue extends Value
 {
     TableValue (TableFieldType[] fields) throws ConnException
     {
-        super (ValueType.create (ValueType.TABLE_MASK));
+        super (ValueType.create (fields));
 
+        this.values = null;
         if ((fields == null) || (fields.length == 0))
-            throw new ConnException (CmdResult.INVALID_ARGS, "No fields descriptors supplied to create a table.");
-
-        this.fields = fields;
-        Arrays.sort (this.fields);
-
-        for (int i = 0; i < this.fields.length; ++i)
         {
-            if ((i > 0) && this.fields[i].getName().equals (this.fields[i-1].getName ()))
-                throw new ConnException (CmdResult.INVALID_ARGS, "A table cannot fields with the same name.");
+            throw new ConnException (
+                            CmdResult.INVALID_ARGS,
+                            "No fields descriptors supplied to create a table."
+                                    );
         }
     }
 
     @Override
-    public boolean equals (Object p)
+    public boolean
+    equals (Object p)
     {
         if (this == p)
             return true;
@@ -48,13 +45,24 @@ public class TableValue extends Value
         else if (this.isNull ())
             return true;
 
-        if (this.values.size () != o.values.size ())
+        final int rowsCount = this.getRowsCount ();
+        if (rowsCount != o.getRowsCount ())
             return false;
 
-        for (int i = 0; i < this.values.size (); ++i)
+        for (int i = 0; i < rowsCount; ++i)
         {
             final Vector<Value> thisRow = this.values.get (i);
             final Vector<Value> othRow = o.values.get (i);
+
+            if (thisRow == null)
+            {
+                if (othRow != null)
+                    return false;
+
+                continue;
+            }
+            else if (othRow == null)
+                return false;
 
             if (thisRow.size () != othRow.size ())
                 return false;
@@ -82,28 +90,52 @@ public class TableValue extends Value
     }
 
     @Override
-    public String toString ()
+    public String
+    toString ()
     {
         if (this.isNull ())
             return "";
 
-        final int rowsCount = this.values.size ();
+        final int rowsCount = this.getRowsCount ();
         assert (rowsCount > 0);
 
-        final StringBuilder resultBuilder = new StringBuilder ();
+        final StringBuilder resultBuilder = new StringBuilder ('(');
         for (int r = 0; r < rowsCount; ++r)
         {
             int f = 0;
             resultBuilder.append ('[');
-            for (TableFieldType field : this.fields)
+
+            final TableFieldType[] fields = this.getFields ();
+            for (TableFieldType field : fields)
             {
                 resultBuilder.append (field.getName ());
-                resultBuilder.append (':');
-                if (this.values.get (r).get (f) != null)
-                    resultBuilder.append (this.values.get (r)
-                                                     .get (f).toString ());
-                if (f < this.fields.length - 1)
-                    resultBuilder.append(", ");
+                Value cell = null;
+                try
+                {
+                    cell = this.get (field.getName (), r);
+                }
+                catch (Throwable e)
+                {
+                    assert (false);
+                    cell = null;
+                }
+
+                if (cell == null)
+                    resultBuilder.append ("(internal error)");
+                else
+                {
+                    if (cell.isArray ())
+                        resultBuilder.append (cell);
+                    else
+                    {
+                        resultBuilder.append ('\'');
+                        resultBuilder.append (cell);
+                        resultBuilder.append ('\'');
+                    }
+                }
+
+                if (f < fields.length - 1)
+                    resultBuilder.append(' ');
                 else
                     resultBuilder.append (']');
 
@@ -111,90 +143,185 @@ public class TableValue extends Value
             }
 
             if (r < rowsCount - 1)
-                resultBuilder.append (", ");
+                resultBuilder.append (' ');
         }
 
-        return resultBuilder.toString ();
+        return resultBuilder.append (')').toString ();
     }
 
     @Override
-    public boolean isNull ()
+    public boolean
+    isNull ()
     {
-        return (this.fields == null)
-                || (this.values == null)
-                || (this.values.size () == 0);
+        return this.getRowsCount () == 0;
     }
 
-    public Value get (String fieldName, int row) throws ConnException
+    public Value
+    get (String fieldName, int row) throws ConnException
     {
         if (this.isNull ())
-            throw new ConnException (CmdResult.INVALID_ARGS, "Cannot retrieve a value from a null table.");
-
-        int field = 0;
-        for (field = 0; field < this.fields.length; ++field)
         {
-            if (this.fields[field].getName().equals (fieldName))
+            throw new ConnException (
+                            CmdResult.INVALID_ARGS,
+                            "Cannot retrieve a value from a null table."
+                                    );
+        }
+
+        final TableFieldType[] fields = this.getFields ();
+        int field = 0;
+        for (field = 0; field < fields.length; ++field)
+        {
+            if (fields[field].getName().equals (fieldName))
                 break;
         }
 
-        if (field >= this.fields.length)
+        if (field >= fields.length)
             throw new ConnException(CmdResult.INVALID_FIELD);
 
-        if (this.values.size () >= row)
+        if (row >= this.getRowsCount ())
             throw new ConnException (CmdResult.INVALID_ROW);
 
         assert field < this.values.get (row).size ();
 
-        return this.values.get (row).get (field);
+        Value result = null;
+
+        if (this.values.get (row) != null)
+        {
+            assert this.values.get (row).size () == fields.length ;
+
+            result = this.values.get (row).get (field);
+        }
+
+        if (result == null)
+        {
+            final ValueType t = fields[field].getType ();
+            if (t.isArray ())
+                result = Value.createArray (t);
+
+            else
+                result = Value.createBasic (t);
+        }
+
+        return result;
     }
 
-    public void put (Value value, String fieldName, int row) throws ConnException
+    public void
+    put (Value value, String fieldName, int row) throws ConnException
     {
         if (row > this.getRowsCount ())
             throw new ConnException(CmdResult.INVALID_ROW);
+
         else if (row == this.getRowsCount ())
             this.addRows (1);
 
+        final TableFieldType[] fields = this.getFields ();
         int field = 0;
-        for (field = 0; field < this.fields.length; ++field)
+        for (field = 0; field < fields.length; ++field)
         {
-            if (this.fields[field].getName().equals (fieldName))
+            if (fields[field].getName().equals (fieldName))
                 break;
         }
 
-        if (field >= this.fields.length)
+        if (field >= fields.length)
             throw new ConnException(CmdResult.INVALID_FIELD);
 
-        if ((value != null) && ! value.type ().equals (this.fields[field].getType ()))
-            throw new ConnException (CmdResult.INVALID_ARGS, "The value type is different than of the field type");
+        if ((value != null)
+            && ! value.type ().equals (fields[field].getType ()))
+        {
+            throw new ConnException (
+                    CmdResult.INVALID_ARGS,
+                    "The value type is different from field type"
+                                    );
+        }
 
-        this.values.get (row).set (field, value);
+        if ((value != null) && value.isNull ())
+        {
+            if (this.values.get (row) != null)
+            {
+                this.values.get (row).set (field, null);
+                for (Value v : this.values.get (row))
+                {
+                    if ((v != null) && ! v.isNull ())
+                        return ;
+                }
+
+                this.values.set (row, null);
+            }
+        }
+        else
+        {
+            Vector<Value> rowValues = this.values.get (row);
+            if (rowValues == null)
+            {
+                rowValues = new Vector<Value> ();
+                for (int f = 0; f < fields.length; ++f)
+                    rowValues.add (null);
+
+                this.values.set (row, rowValues);
+            }
+
+            assert rowValues.size () == fields.length;
+
+            this.values.get (row).set (field, value);
+        }
     }
 
-    public final void addRows (int count)
+    public final void
+    addRows (int count)
     {
+        if (count == 0)
+            return ;
+
         if (this.values == null)
             this.values = new Vector<Vector<Value>>();
 
         for (int i = 0; i < count; ++i)
-            this.values.add (new Vector<Value>(this.fields.length));
+            this.values.add (null);
     }
 
-    public final int getRowsCount ()
+
+    public final int
+    getRowsCount ()
     {
-        if (this.isNull ())
+        if (this.values == null)
             return 0;
 
         return this.values.size ();
     }
 
-    public TableFieldType[] getFields ()
+    public TableFieldType[]
+    getFields ()
     {
-        assert this.fields.length > 0;
-
-        return this.fields;
+        try
+        {
+            assert this.type ().getFields ().length > 0;
+            return this.type ().getFields ();
+        }
+        catch (Throwable e)
+        {
+            assert false;
+        }
+       return null;
     }
 
-    private final TableFieldType[]     fields;
+    public boolean
+    isEmptyRow (int row)
+    {
+        final Vector<Value> rowValues = this.values.get (row);
+
+        if (rowValues == null)
+            return true;
+
+        assert rowValues.size () == this.getFields ().length;
+
+        for (Value f : rowValues)
+        {
+            if ((f != null) && ! f.isNull ())
+                return false;
+        }
+
+        return true;
+    }
+
     private Vector<Vector<Value>>      values;
 }

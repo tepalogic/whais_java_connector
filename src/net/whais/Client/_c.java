@@ -88,6 +88,7 @@ class _c
     final static byte CMD_UPDATE_FUNC_POP        = 1;
     final static byte CMD_UPDATE_FUNC_PUSH       = 2;
     final static byte CMD_UPDATE_FUNC_CHTOP      = 3;
+    final static byte CMD_UPDATE_FUNC_TBL_ROWS   = 4;
 
     final static short CMD_EXEC_PROC             = CMD_UPDATE_STACK_RSP + 1;
     final static short CMD_EXEC_PROC_RSP         = CMD_EXEC_PROC + 1;

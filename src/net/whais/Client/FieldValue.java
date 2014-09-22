@@ -88,7 +88,7 @@ public class FieldValue extends Value
     public String toString ()
     {
         if (this.isNull ())
-            return "";
+            return "[]";
 
         final int rowsCount = this.rows.size ();
         assert (rowsCount > 0);
@@ -96,13 +96,16 @@ public class FieldValue extends Value
         final StringBuilder resultBuilder = new StringBuilder ().append('[');
         for (int r = 0; r < rowsCount; ++r)
         {
+            resultBuilder.append ('[');
             if (this.rows.get (r) != null)
                 resultBuilder.append (this.rows.get (r).toString ());
 
             if (r < rowsCount - 1)
-                resultBuilder.append(", ");
+                resultBuilder.append("] ");
+
+            else
+                resultBuilder.append (']');
         }
-        resultBuilder.append (']');
 
         return resultBuilder.toString ();
     }

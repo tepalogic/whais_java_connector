@@ -139,6 +139,9 @@ public abstract class Value
                                     );
         }
 
+        if (src[srcOffset] == 0)
+            return Value.createBasic (type);
+
         long temp;
         int year, month, day, hours, mins, secs, usecs;
         int intSize;

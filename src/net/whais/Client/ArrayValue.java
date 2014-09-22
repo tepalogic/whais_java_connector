@@ -142,6 +142,11 @@ public class ArrayValue extends Value
         return this.values.toArray (result);
     }
 
+    public int size ()
+    {
+        return (this.values == null) ? 0 : this.values.size ();
+    }
+
     @Override
     public String toString ()
     {
@@ -151,14 +156,16 @@ public class ArrayValue extends Value
         final int count = this.values.size ();
         assert (count > 0);
 
-        final StringBuilder resultBuilder = new StringBuilder ().append('[');
+        final StringBuilder resultBuilder = new StringBuilder ().append('{');
         for (int r = 0; r < count; ++r)
         {
+            resultBuilder.append ('\'');
             resultBuilder.append (this.values.get (r).toString ());
+            resultBuilder.append ('\'');
             if (r < count - 1)
-                resultBuilder.append(", ");
+                resultBuilder.append(' ');
         }
-        resultBuilder.append (']');
+        resultBuilder.append ('}');
 
         return resultBuilder.toString ();
     }
