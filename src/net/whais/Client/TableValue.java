@@ -181,7 +181,8 @@ public class TableValue extends Value
         if (row >= this.getRowsCount ())
             throw new ConnException (CmdResult.INVALID_ROW);
 
-        assert field < this.values.get (row).size ();
+        assert (this.values.get (row) == null)
+               || (field < this.values.get (row).size ());
 
         Value result = null;
 

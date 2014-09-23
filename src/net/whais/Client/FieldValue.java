@@ -56,6 +56,9 @@ public class FieldValue extends Value
         assert (v.type().isBasic() || v.type().isArray());
         assert (! v.type().isTable() || v.type().isField ());
 
+        if (this.rows == null)
+            this.rows = new Vector<Value> ();
+
         if ((v != null) && (v.isNull ()))
             this.rows.add (null);
 
@@ -64,7 +67,7 @@ public class FieldValue extends Value
 
     public Value get (int row) throws ConnException
     {
-        if ((this.rows == null) || (this.rows.size () <= row))
+        if (this.getRowsCount () <= row)
             throw new ArrayIndexOutOfBoundsException (row);
 
         final Value result = this.rows.get (row);
@@ -79,10 +82,15 @@ public class FieldValue extends Value
             return Value.createBasic(ValueType.create(type));
         }
 
-        assert ! result.isNull ();
-
         return result;
     }
+
+    public int
+    getRowsCount ()
+    {
+        return (this.rows == null) ? 0 : this.rows.size ();
+    }
+
 
     @Override
     public String toString ()
@@ -113,7 +121,7 @@ public class FieldValue extends Value
     @Override
     public boolean isNull ()
     {
-        return (this.rows == null) || (this.rows.size () == 0);
+        return (this.getRowsCount () == 0);
     }
 
     private Vector<Value> rows;
