@@ -1,18 +1,29 @@
 package net.whais.Client;
 
-import net.whais.Client.PlainCipher;
 
 final class CipherFactory
 {
     static PlainCipher plainCipher ()
     {
 
-        if (cipher == null) {
-            cipher = new PlainCipher ();
+        if (cipherPlain == null) {
+            cipherPlain = new PlainCipher ();
         }
 
-        return cipher;
+        return cipherPlain;
     }
 
-    static PlainCipher cipher;
+    static ThreeKingsCipher threeKingsCipher ()
+    {
+
+        if (cipher3K == null) {
+            cipher3K = new ThreeKingsCipher ();
+        }
+
+        return cipher3K;
+    }
+
+
+    static PlainCipher      cipherPlain;
+    static ThreeKingsCipher cipher3K;
 }

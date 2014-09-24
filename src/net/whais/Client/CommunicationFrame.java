@@ -27,24 +27,12 @@ class CommunicationFrame
                                          .order(ByteOrder.LITTLE_ENDIAN);
         this.expectedFrameId = 0;
         this.pendingCommand  = _c.CMD_INVALID;
+        this.key             = key;
+        this.cipher          = CipherFactory.plainCipher ();
 
         this.readRawFrame ();
         if (this.rawFrame.get (_c.FRAME_TYPE_OFF) != _c.FRAME_TYPE_AUTH_CLNT)
             throw new ConnException("Did not received the authentication frame.");
-
-        final byte cipherType = this.rawFrame.get (_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_ENC_OFF);
-        switch (cipherType)
-        {
-            case _c.FRAME_ENCTYPE_PLAIN:
-                this.cipher = CipherFactory.plainCipher ();
-                break;
-
-            case _c.FRAME_ENCTYPE_3K:
-            default:
-
-                throw new ConnException ("The communication cipher used by the " +
-                        "server is not supported by this client.");
-        }
 
         final byte protocolVer = 1;
         if ((this.rawFrame.getInt (_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_VER_OFF) &
@@ -60,6 +48,23 @@ class CommunicationFrame
 
         if (maxFrameSize < serverFrameSize)
             serverFrameSize = maxFrameSize;
+
+        switch (this.rawFrame.get (_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_ENC_OFF))
+        {
+            case _c.FRAME_ENCTYPE_PLAIN:
+                this.cipher = CipherFactory.plainCipher ();
+                break;
+
+            case _c.FRAME_ENCTYPE_3K:
+                this.cipher = CipherFactory.threeKingsCipher ();
+                serverFrameSize -= (serverFrameSize % 4);
+                break;
+
+            default:
+                throw new ConnException ("The communication cipher used by the "
+                                         + "server is not supported by this "
+                                         + "client.");
+        }
 
         if (serverFrameSize != this.rawFrame.capacity ())
             this.rawFrame = ByteBuffer.allocate (serverFrameSize).order(ByteOrder.LITTLE_ENDIAN);
@@ -292,6 +297,8 @@ class CommunicationFrame
                     bytesRead += count;
                 }
                 this.rawFrameSize = expected;
+                this.cipher.decodeFrame (this, this.key);
+
                 return ;
             }
 
@@ -307,6 +314,7 @@ class CommunicationFrame
             default:
                 throw new ConnException ("Received a frame with an unexpected type.");
         }
+
     }
 
     final private void writeRawFrame (byte frameType) throws IOException
@@ -317,6 +325,8 @@ class CommunicationFrame
         this.rawFrame.put (_c.FRAME_ENCTYPE_OFF, this.cipher.type ());
         this.rawFrame.putInt (_c.FRAME_ID_OFF, this.expectedFrameId++);
 
+        this.cipher.encodeFrame (this, key);
+
         this.oStream.write (this.rawFrame.array (), 0, this.rawFrameSize);
     }
 
@@ -324,7 +334,7 @@ class CommunicationFrame
     private final InputStream     iStream;
     private final OutputStream    oStream;
     private final Socket          server;
-    private final Cipher          cipher;
+    private Cipher                cipher;
     private ByteBuffer            rawFrame;
     private int                   rawFrameSize;
     private int                   expectedFrameId;
@@ -332,4 +342,5 @@ class CommunicationFrame
     private int                   serverCookie;
     private short                 lastReceivedRsp;
     private short                 pendingCommand;
+    private byte[]                key;
 }
