@@ -126,8 +126,6 @@ class CommunicationFrame
 
     final void markBufferPositionValid ()
     {
-        assert this.rawFrameSize <= this.rawFrame.position ();
-
         this.rawFrameSize = this.rawFrame.position ();
 
         assert this.rawFrameSize <= this.rawFrame.capacity ();

@@ -118,12 +118,6 @@ public abstract class Value
 
     public static TableValue createTable (TableFieldType[] fields) throws ConnException
     {
-        if ((fields == null) || (fields.length == 0))
-        {
-            throw new ConnException(CmdResult.INVALID_ARGS,
-                                    "Cannot create an undefined table.");
-        }
-
         return new TableValue (fields);
     }
 

@@ -417,6 +417,9 @@ public class ValueType
      */
     public final TableFieldType[] getFields ()
     {
+        if (this.fields == null)
+            return sNofields;
+
         return this.fields;
     }
 

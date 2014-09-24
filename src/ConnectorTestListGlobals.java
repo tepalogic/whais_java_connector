@@ -110,7 +110,7 @@ public class ConnectorTestListGlobals
         TableFieldType[] fields = type.getFields ();
         if (fieldsCount == 0)
         {
-            if (fields != null)
+            if (fields.length != 0)
                 return false;
 
             return tstring.equals (this.mGlobalsTypes[glbIndex]);

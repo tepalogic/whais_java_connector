@@ -296,6 +296,7 @@ public class TableValue extends Value
         try
         {
             assert this.type ().getFields ().length > 0;
+
             return this.type ().getFields ();
         }
         catch (Throwable e)

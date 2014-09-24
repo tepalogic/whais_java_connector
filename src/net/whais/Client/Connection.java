@@ -546,7 +546,7 @@ public class Connection {
         buffer.put (_c.CMD_UPDATE_FUNC_PUSH);
         buffer.putShort (type.getTypeId ());
 
-        if (type.isTable () && (type.getFields() != null))
+        if (type.isTable () && (type.getFields().length > 0))
         {
             buffer.putShort ((short) type.getFields ().length);
             for (TableFieldType f : type.getFields ())
