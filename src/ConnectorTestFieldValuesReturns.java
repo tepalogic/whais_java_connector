@@ -416,7 +416,7 @@ public class ConnectorTestFieldValuesReturns {
                                 "-d",
                                 "test_exec_db",
                                 "--fs",
-                                "65535"
+                                "32768"
                                };
 
         final int customCount = customArgs.length;
@@ -590,6 +590,7 @@ public class ConnectorTestFieldValuesReturns {
             c.executeProcedure ("table_field");
 
             FieldValue result = (FieldValue) c.retrieveStackTop ();
+
             if (rows == 0)
             {
                 if ( ! result.isNull ())
@@ -604,7 +605,7 @@ public class ConnectorTestFieldValuesReturns {
                 if ( ! (fv.equals (tv) && tv.equals (fv)))
                     return false;
             }
-            c.popAllStackValues ();
+            c.popStackValues( Connection.ALL);
         }
 
         System.out.println ("DONE.");

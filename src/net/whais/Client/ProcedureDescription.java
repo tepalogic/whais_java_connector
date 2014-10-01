@@ -1,83 +1,95 @@
 package net.whais.Client;
 
 /**
- * Describes the return value and the parameters of a Whais procedure.
+ * Represents the description of a WHAIS procedure.
+ * <p>
+ * Object of this type are returned in order to describe the procedures
+ * defined in the context of a WHAIS database.</p>
  *
  * @version 1.0
  *
+ * @see Connection
  * @see Connection#describeProcedure(String)
  */
 
 public class ProcedureDescription
 {
-    protected ProcedureDescription (String name, ValueType[] parameters) throws ConnException
+    ProcedureDescription(String name, ValueType[] parameters) throws ConnException
     {
         assert parameters.length > 0;
         assert name != null;
 
-        this.name       = name;
-        this.parameters = parameters;
+        mName = name;
+        mParameters = parameters;
     }
 
     /**
-     * Get the name of the described Whais procedure.
-     *
-     * @return The procedure name.
+     * Get the name of the procedure.
      *
      * @since 1.0
      */
-    public String getName ()
+    public String getName()
     {
-        return this.name;
+        return mName;
     }
 
     /**
-     * Describe the return type of a Whais procedure.
+     * Describe the procedure return type.
      *
-     * @return A description of the procedure return type.
+     * @return
+     *            An object holding the procedure's return value description.
      *
-     * @since 1.0
      * @see ValueType
-     */
-    public final ValueType describeReturnValue ()
-    {
-        return this.parameters[0];
-    }
-
-    /**
-     * Get the parameters count of the described Whais procedure.
-     *
-     * @return The number of procedure parameters.
      *
      * @since 1.0
-     * @see #describeParameter(int)
      */
-    public int getParametersCount ()
+    public final ValueType describeReturnValue()
     {
-        return this.parameters.length - 1;
+        return mParameters[0];
     }
 
     /**
-     * Describe the paramter's type of a Whais procedure.
+     * Get the count of the procedures parameters.
+     * <p>
+     * This method its used prior
+     * {@link ProcedureDescription#describeParameter(int)} in order to
+     * retrieve the number of arguments of a WHAIS procedure.</p>
      *
-     * @param i The index of the procedure (counting from 0).
-     * @return  The description of the parameter type.
+     * @return
+     *            The count of procedure's parameters (the return type is not
+     *            included on this count).
+     *
+     * @since 1.0
+     */
+    public int getParametersCount()
+    {
+        return mParameters.length - 1;
+    }
+
+    /**
+     * Describe a procedure parameter.
+     *
+     * @param i
+     *            The index of the procedure parameter. The index count starts
+     *            from {@code 0} (e.g. use {@code 0} for the first, {@code 1}
+     *            for the second on and so on).
+     * @return
+     *            An object holding the paramater's description.
      *
      * @throws ConnException
      *
-     * @since 1.0
-     *
      * @see #getParametersCount()
-     * @see ValueType
+     *
+     * @since 1.0
      */
-    public final ValueType describeParameter (int i) throws ConnException
+    public final ValueType describeParameter( int i) throws ConnException
     {
-        if ((i < 0) || (i >= this.parameters.length - 1))
-            throw new ConnException(CmdResult.INVALID_ARGS, "No such parameter.");
+        if ((i < 0) || (i >= mParameters.length - 1))
+            throw new ConnException( CmdResult.INVALID_ARGS, "No such parameter.");
 
-        return this.parameters[i + 1];
+        return mParameters[i + 1];
     }
 
-    private final String      name;
-    private final ValueType[] parameters;
+    private final String mName;
+    private final ValueType[] mParameters;
 }

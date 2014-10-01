@@ -2,179 +2,204 @@ package net.whais.Client;
 
 import java.util.Vector;
 
+/**
+ * Represents a specialized form of a {@link Value} to ease the manipulation of
+ * WHAIS array values.
+ *
+ * @version 1.0
+ */
 public class ArrayValue extends Value
 {
-    ArrayValue (ValueType type, Value[] values) throws ConnException
+    ArrayValue(ValueType type, Value[] values) throws ConnException
     {
-        super (type);
+        super( type);
 
-        if (values == null)
-        {
-            this.values = null;
-            return ;
+        if (values == null) {
+            mValues = null;
+            return;
         }
 
-        this.values = new Vector<Value> ();
-        for (int i = 0; i < values.length; ++i)
-        {
-            if ((values[i] == null) || values[i].isNull ())
-            {
-                throw new ConnException (
-                                CmdResult.INVALID_ARGS,
-                                "An array should may not hold a null values."
-                                        );
-            }
-            else if (! type.equals(values[i].type ()))
-            {
-                throw new ConnException (
-                        CmdResult.INVALID_ARGS,
-                        "Cannot add a value of type "
-                            + values[i].type ().toString ()
-                            + " to an array of type " + type.toString () + '.'
-                                         );
+        mValues = new Vector<Value>();
+        for (int i = 0; i < values.length; ++i) {
+            if ((values[i] == null) || values[i].isNull())
+                throw new ConnException( CmdResult.INVALID_ARGS, "An array should may not hold a null values.");
+            else if ( ! type.equals( values[i].type())) {
+                throw new ConnException( CmdResult.INVALID_ARGS,
+                                         "Cannot add a value of type " + values[i].type().toString()
+                                          + " to an array of type " + type.toString() + '.');
             }
 
-            this.values.add (values[i]);
+            mValues.add( values[i]);
         }
     }
 
-    ArrayValue (ValueType type) throws ConnException
+    ArrayValue(ValueType type) throws ConnException
     {
-        this (type, null);
+        this( type, null);
     }
 
+    /**
+     * Returns {@code true} if both object holds an array of WHAIS objects
+     * each with equals elements and in the same order.
+     */
     @Override
-    public boolean equals (Object p)
-    {
+    public boolean equals( Object p) {
         if (this == p)
             return true;
-
         else if ( ! (p instanceof ArrayValue))
             return false;
 
         final ArrayValue o = (ArrayValue) p;
 
-        try
-        {
-            if ( ! this.type ().equals (o.type ()))
+        try {
+            if ( ! type().equals( o.type()))
                 return false;
-        }
-        catch (Throwable e)
-        {
+        } catch (Throwable e) {
             return false;
         }
 
-        if (this.isNull () != o.isNull())
+        if (isNull() != o.isNull())
             return false;
-
-        else if (this.isNull())
+        else if (isNull())
             return true;
-
-        else if (this.values.size () != o.values.size ())
+        else if (mValues.size() != o.mValues.size())
             return false;
 
-        for (int i = 0; i < this.values.size (); ++i)
-        {
-            if (! this.get(i).equals (o.get(i)))
+        for (int i = 0; i < mValues.size(); ++i) {
+            if ( ! get( i).equals( o.get( i)))
                 return false;
         }
 
         return true;
     }
 
-    public void add (Value v) throws ConnException
+    /**
+     * Add a value to the array.
+     * <p>
+     * Increase the array with a new value. The value will be inserted into
+     * the array at its current size (e.g. value returned by {@link #size()})
+     * and increase the array size afterward if the addition was
+     * successful.</p>
+     *
+     * @param v
+     *            The value to add into the array. It should not be a null value
+     *            as WHAIS arrays do not hold null values.
+     *
+     * @throws ConnException
+     */
+    public void add( Value v) throws ConnException
     {
-        if (v.isNull ())
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "Cannot add a null value to an array.");
+        if (v.isNull())
+            throw new ConnException( CmdResult.INVALID_ARGS, "Cannot add a null value to an array.");
+
+        if ( ! v.type().isBasic() || v.type().equals( ValueType.textType()))
+            throw new ConnException( CmdResult.INVALID_ARGS, "An array may hold only basic values.");
+
+        if (mValues == null) {
+
+            mValues = new Vector<Value>();
+            mValues.add( v);
+
+            return;
         }
 
-        if (! v.type ().isBasic ()
-            || v.type ().equals (ValueType.textType ()))
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "An array may hold only basic values.");
+        if ( ! ValueType.create( type().getBaseType()).equals( v.type())) {
+            throw new ConnException( CmdResult.INVALID_ARGS,
+                                     "Cannot add a value of type " + v.type().toString()
+                                     + " to an array of type " + this.type().toString() + '.');
         }
 
-        if (this.values == null)
-        {
-            this.values = new Vector<Value> ();
-            this.values.add (v);
-
-            return ;
-        }
-
-        if ( ! ValueType.create (this.type ().getBaseType ()).equals(v.type ()))
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "Cannot add a value of type "
-                                         + v.type ().toString ()
-                                         + " to an array of type "
-                                         + this.type ().toString () + '.');
-        }
-        this.values.add (v);
+        this.mValues.add( v);
     }
 
-    public Value get (int i)
+    /**
+     * Retrieve an array element.
+     *
+     * @param i
+     *            The index of the element in the array.
+     * @return
+     *            Return a value of the {@code i}th element from the array.
+     */
+    public Value get( int i)
     {
-        if ((this.values == null) || (this.values.size () <= i))
-            throw new ArrayIndexOutOfBoundsException (i);
+        if ((this.mValues == null) || (this.mValues.size() <= i))
+            throw new ArrayIndexOutOfBoundsException( i);
 
-        return this.values.get (i);
+        return this.mValues.get( i);
     }
 
-    public Value remove (int i)
+    /**
+     * Remove an array element.
+     *
+     * @param i
+     *            The index of the element in the array.
+     * @return
+     *            Return a value of the {@code i}th element removed from
+     *            the array.
+     */
+    public Value remove( int i)
     {
-        if ((this.values == null) || (this.values.size () <= i))
-            throw new ArrayIndexOutOfBoundsException (i);
+        if ((this.mValues == null) || (this.mValues.size() <= i))
+            throw new ArrayIndexOutOfBoundsException( i);
 
-        return this.values.remove (i);
+        return this.mValues.remove( i);
     }
 
-    public Value[] toArray ()
+    /**
+     * Get a Java like array of values.
+     *
+     * @return
+     *            Return a standard Java array with the values hold by the
+     *            WHAIS array.
+     */
+    public Value[] toArray()
     {
-        Value[] result = new Value[this.values.size ()];
+        Value[] result = new Value[this.mValues.size()];
 
-        if (this.isNull ())
+        if (this.isNull())
             return null;
 
-        return this.values.toArray (result);
+        return this.mValues.toArray( result);
     }
 
-    public int size ()
+    /**
+     * Get the array's elements count.
+     */
+    public int size()
     {
-        return (this.values == null) ? 0 : this.values.size ();
+        return (this.mValues == null) ? 0 : this.mValues.size();
     }
 
     @Override
-    public String toString ()
+    public String toString()
     {
-        if (this.isNull ())
+        if (this.isNull())
             return "";
 
-        final int count = this.values.size ();
+        final int count = this.mValues.size();
         assert (count > 0);
 
-        final StringBuilder resultBuilder = new StringBuilder ().append('{');
-        for (int r = 0; r < count; ++r)
-        {
-            resultBuilder.append ('\'');
-            resultBuilder.append (this.values.get (r).toString ());
-            resultBuilder.append ('\'');
+        final StringBuilder resultBuilder = new StringBuilder().append( '{');
+        for (int r = 0; r < count; ++r) {
+            resultBuilder.append( '\'');
+            resultBuilder.append( this.mValues.get( r).toString());
+            resultBuilder.append( '\'');
             if (r < count - 1)
-                resultBuilder.append(' ');
+                resultBuilder.append( ' ');
         }
-        resultBuilder.append ('}');
+        resultBuilder.append( '}');
 
-        return resultBuilder.toString ();
+        return resultBuilder.toString();
     }
 
+    /**
+     * Check if this is a null WHAIS array value.
+     */
     @Override
-    public boolean isNull ()
+    public boolean isNull()
     {
-        return (this.values == null) || (this.values.size () == 0);
+        return (this.mValues == null) || (this.mValues.size() == 0);
     }
 
-    private Vector<Value> values;
+    private Vector<Value> mValues;
 }

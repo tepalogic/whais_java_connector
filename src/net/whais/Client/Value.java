@@ -2,55 +2,187 @@ package net.whais.Client;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Describes a WHAIS value. An instance of this object will be used to set send
+ * provide procedures parameters or to retrieve the returned result after
+ * executing such a procedure.
+ *
+ * @version 1.0
+ */
 public abstract class Value
 {
-    Value (ValueType type)
+    Value(ValueType type)
     {
         assert type != null;
 
-        this.type = type;
+        this.mType = type;
     }
 
+    /**
+     * Retrieves the default string representation of a WHAIS value.
+     */
     @Override
-    public abstract String toString ();
+    public abstract String toString();
 
-    public abstract boolean isNull ();
+    /**
+     * Check if is a null WHAIS value.
+     *
+     * @since 1.0
+     */
+    public abstract boolean isNull();
 
+    /**
+     * Check if two WHAIS value objects are equal.
+     * <p>
+     * Two WHAIS values are considered equal if they the same type of
+     * WHAIS value and they have the same content.
+     */
     @Override
-    public abstract boolean equals (Object p);
+    public abstract boolean equals( Object p);
 
-    public final boolean isArray ()
+    /**
+     * Check if it the value holds an array.
+     *
+     * @return
+     *            Returns {@code true} if the values holds an WHAIS array
+     *            value. If this is the case then its safe to case the
+     *            object to a {@link ArrayValue} for better manipulation.
+     * @since 1.0
+     */
+    public final boolean isArray()
     {
         return this instanceof ArrayValue;
     }
 
-    public final boolean isTable ()
+    /**
+     * Check if it the value holds a table.
+     *
+     * @return
+     *            Returns {@code true} if the values holds an WHAIS table
+     *            value. If this is the case then its safe to case the
+     *            object to a {@link TableValue} for better manipulation.
+     * @since 1.0
+     */
+    public final boolean isTable()
     {
         return this instanceof TableValue;
     }
 
-    public final ValueType type () throws ConnException
+    /**
+     * Check if it the value holds a field.
+     * <p>
+     * There is no method to create a {@link FieldValue} directly by the user,
+     * but they are created by the WHAIS client framework to handle WHAIS
+     * procedures returned field results.</p>
+     *
+     * @return
+     *            Returns {@code true} if the values holds an WHAIS field
+     *            value. If this is the case then its safe to case the
+     *            object to a {@link FieldValue} for better manipulation.
+     * @since 1.0
+     */
+    public final boolean isField()
     {
-        return this.type;
+        return this instanceof FieldValue;
     }
 
-    public static Value createBasic (ValueType type, String s) throws ConnException
+    /**
+     * Retrieve the type of the WHAIS value.
+     *
+     * @return
+     *            An object describing the value's type.
+     *
+     * @throws ConnException
+     *
+     * @since 1.0
+     */
+    public final ValueType type() throws ConnException
     {
-        if (! type.isBasic ())
-            throw new ConnException (CmdResult.INVALID_ARGS, "This function may create only basic type values.");
+        return this.mType;
+    }
 
-        switch (type.getBaseType ())
-        {
+    /**
+     *  Factory method to create a WHAIS basic value.
+     * <p>
+     * A WHAIS basic value is a value of a boolean type is a value that is not
+     * an array, a field nor a table value.</p>
+     * <p>
+     * Based on the requested value type, the supplied string has to obey a
+     * format in order to ensure the proper creation of the value as follows:
+     * <dl>
+     *  <dt>{@link ValueType#BOOL}</dt>
+     *  <dd> Requires {@code "1"}, {@code "true"} or {@code "on"} to create
+     *       a WHAIS boolean <em>true</em> value, and {@code "0"},
+     *       {@code "false"} or {@code "off"} for a <em>false</em> one.</dd>
+     * </dl>
+     * <dt>{@link ValueType#CHAR}</dt>
+     * <dd>The WHAIS character value will be provided from by the supplied
+     *     string. The respective string should only have one Unicode code
+     *     point.</dd>
+     * <dt>{@link ValueType#DATE}</dt>
+     * <dd>Requires a string formated like <em>"YYYY/MM/DD"</em> (e.g. {@code
+     *     "2001/11/24"}, {@code "1/1/1"} or {@code "-3000/12/1"}).</dd>
+     * <dt>{@link ValueType#DATETIME}</dt>
+     * <dd>Requires a string formated like <em>"YYYY/MM/DD hh:mm:ss"</em>
+     *     (e.g. {@code "1989/12/23 13:59:1"}, {@code "-19/1/1 0:0:1"}).</dd>
+     *
+     * <dt>{@link ValueType#HIRESTIME}</dt>
+     * <dd>Requires a string formated like <em>"YYYY/MM/DD hh:mm:ss.uuuuuu"
+     *     </em> (e.g. {@code "1/1/1 0:0:123456"}). Users should supply the
+     *     microseconds part left padded with <em>0s</em>. Other wise in case
+     *     there are fewer digits the value will be right padded by default
+     *     with <em>0s</em>(e.g. {@code "1/1/1 0/0/0.123"} gets translated to
+     *     {@code "1/1/1 0/0/0.123000"}).</dd>
+     * <dt>{@link ValueType#INT8}, {@link ValueType#INT16},
+     *     {@link ValueType#INT32}, {@link ValueType#INT64}</dt>
+     * <dd>These string should represents an integer value.<dd>
+     * <dt>{@link ValueType#UINT8}, {@link ValueType#UINT16},
+     *     {@link ValueType#UINT32}, {@link ValueType#UINT64}</dt>
+     * <dd>These string should represents an positive integer value.<dd>
+     * <dt>{@link ValueType#REAL}, {@link ValueType#RICHREAL}</dt>
+     * <dd>These string should represents a rational number value.</dd>
+     * <dt>{@link ValueType#REAL}, {@link ValueType#RICHREAL}</dt>
+     * <dd>The string will supply the WHAIS text value.</dd>
+     *
+     * </dl></p>
+     * <p>
+     * <em>Note:</em>If for some reason the type could not hold the specified
+     * field value (e.g. by using {@code "1024"} for a
+     * {@link ValueType#UINT8}, or a real number with more fractional digits
+     * that the server supports for the respective type), this framework will
+     * not signal the error, leaving the server to manage the situation
+     * (by either truncating the value, or signaling the error).</p>
+     *
+     * @param type
+     *            The type of the value to instantiate.
+     * @param s
+     *            The string representation of the value. To create a null
+     *            value this parameter should be either {@code null} or an
+     *            empty string.
+     * @return
+     *            Returns an object of the specified if after the supplied
+     *            string parsing was successful.
+     *
+     * @throws ConnException
+     *
+     * @since  1.0
+     */
+    public static Value createBasic( ValueType type, String s) throws ConnException
+    {
+        if (!type.isBasic())
+            throw new ConnException( CmdResult.INVALID_ARGS, "This function may create only basic type values.");
+
+        switch (type.getBaseType()) {
         case ValueType.BOOL:
-            return new BoolValue (s);
+            return new BoolValue( s);
 
         case ValueType.CHAR:
-            return new CharValue (s);
+            return new CharValue( s);
 
         case ValueType.DATE:
         case ValueType.DATETIME:
         case ValueType.HIRESTIME:
-            return new TimeValue (type, s);
+            return new TimeValue( type, s);
 
         case ValueType.INT8:
         case ValueType.INT16:
@@ -60,89 +192,119 @@ public abstract class Value
         case ValueType.UINT16:
         case ValueType.UINT32:
         case ValueType.UINT64:
-            return new IntegerValue (type, s);
+            return new IntegerValue( type, s);
 
         case ValueType.REAL:
         case ValueType.RICHREAL:
-            return new RealValue (type, s);
+            return new RealValue( type, s);
 
         case ValueType.TEXT:
-            return new TextValue (s);
+            return new TextValue( s);
         }
 
-        throw new ConnException(CmdResult.INVALID_ARGS, "Unknown type to create a value!");
+        throw new ConnException( CmdResult.INVALID_ARGS, "Unknown type to create a value!");
     }
 
-    public static Value createBasic (ValueType type) throws ConnException
+    /**
+     * Wrapper to create a null value of the supplied type.
+     *
+     * @see #createBasic(ValueType, String)
+     * @since 1.0
+     */
+    public static Value createBasic( ValueType type) throws ConnException
     {
-        return createBasic (type, null);
+        return createBasic( type, null);
     }
 
-    public static ArrayValue createArray (ValueType type, String ... s) throws ConnException
+    /**
+     * Create an array of WHAIS values.
+     *
+     * @param type
+     *            The type of the array to create.
+     * @param s
+     *            An arrays of strings to supply the value. See
+     *            {@link #createBasic(ValueType, String)} for a description
+     *            of the required value formats. If this is not provided or
+     *            has no elements then this will be a null WHAIS array value
+     *            of the specified type.
+     * @return
+     *            A value holding the WHAIS array.
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     * @see #createTable(TableFieldType[])
+     *
+     * @since 1.0
+     */
+    public static ArrayValue createArray( ValueType type, String... s) throws ConnException
     {
-        if (! (type.isArray() || type.isBasic()))
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "Invalid type provided to create a type.");
-        }
-        else if (type.getBaseType () == ValueType.TYPE_NOTSET)
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "Cannot create an undefined array.");
+        if (!(type.isArray() || type.isBasic())) {
+            throw new ConnException( CmdResult.INVALID_ARGS, "Invalid type provided to create a type.");
+        } else if (type.getBaseType() == ValueType.TYPE_NOTSET) {
+            throw new ConnException( CmdResult.INVALID_ARGS, "Cannot create an undefined array.");
         }
 
-        ArrayValue result = new ArrayValue (ValueType.create (type.getBaseType() | ValueType.ARRAY_MASK));
-        if ((s == null)
-            || (s.length == 0)
-            || ((s.length == 1) && (s[0].length() == 0)))
-        {
+        ArrayValue result = new ArrayValue( ValueType.create( type.getBaseType() | ValueType.ARRAY_MASK));
+        if ((s == null) || (s.length == 0) || ((s.length == 1) && (s[0].length() == 0))) {
             return result;
         }
 
-        ValueType baseType = ValueType.create (type.getBaseType ());
+        ValueType baseType = ValueType.create( type.getBaseType());
         for (String v : s)
-            result.add (Value.createBasic (baseType, v));
+            result.add( Value.createBasic( baseType, v));
 
         return result;
     }
 
-    public static ArrayValue createArray (ValueType type) throws ConnException
+    /**
+     * Wrapper to create a null WHAIS array of the specified type.
+     */
+    public static ArrayValue createArray( ValueType type) throws ConnException
     {
-        return createArray (type, "");
+        return createArray( type, "");
     }
 
-    static FieldValue createField (ValueType type) throws ConnException
+    static FieldValue createField( ValueType type) throws ConnException
     {
-        return new FieldValue (type);
+        return new FieldValue( type);
     }
 
-    public static TableValue createTable (TableFieldType[] fields) throws ConnException
+    /**
+     * Create an empty table WHAIS value.
+     *
+     * @param fields
+     *            An array holding the table's fields description. See
+     *            {@link TableValue#TableValue(TableFieldType[])} for more
+     *            information about the fields.
+     * @return
+     *            The WHAIS table value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     * @see #createArray(ValueType, String...)
+     * @since 1.0
+     */
+    public static TableValue createTable( TableFieldType[] fields) throws ConnException
     {
-        return new TableValue (fields);
+        return new TableValue( fields);
     }
 
-    static Value createBasic (ValueType type,
-                              byte[]    src,
-                              int       srcOffset) throws ConnException
+    static Value createBasic( ValueType type, byte[] src, int srcOffset) throws ConnException
     {
-        if (! type.isBasic ())
-        {
-            throw new ConnException (
-                            CmdResult.INVALID_ARGS,
-                            "This function may create only basic type values."
-                                    );
+        if (!type.isBasic()) {
+            throw new ConnException( CmdResult.INVALID_ARGS, "This function may create only basic type values.");
         }
 
         if (src[srcOffset] == 0)
-            return Value.createBasic (type);
+            return Value.createBasic( type);
 
         long temp;
         int year, month, day, hours, mins, secs, usecs;
         int intSize;
-        switch (type.getBaseType ())
-        {
+        switch (type.getBaseType()) {
         case ValueType.BOOL:
-            return new BoolValue (src[srcOffset] != '0');
+            return new BoolValue( src[srcOffset] != '0');
 
         case ValueType.CHAR:
 
@@ -152,111 +314,108 @@ public abstract class Value
 
             assert (src[srcOffset] == 0);
 
-            return new CharValue (new String (src,
-                                              startOffset,
-                                              srcOffset - startOffset,
-                                              StandardCharsets.UTF_8));
+            return new CharValue( new String( src, startOffset, srcOffset - startOffset, StandardCharsets.UTF_8));
         case ValueType.DATE:
-            year = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            year = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '/';
             ++srcOffset;
 
-            month = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            month = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '/';
             ++srcOffset;
 
-            day = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            day = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == 0;
 
-            return new TimeValue (ValueType.dateType(), year, month, day, 0, 0, 0, 0);
+            return new TimeValue( ValueType.dateType(), year, month, day, 0, 0, 0, 0);
 
         case ValueType.DATETIME:
-            year = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            year = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '/';
             ++srcOffset;
 
-            month = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            month = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '/';
             ++srcOffset;
 
-            day = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            day = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == ' ';
             ++srcOffset;
 
-            hours = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            hours = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == ':';
             ++srcOffset;
 
-            mins = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            mins = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == ':';
             ++srcOffset;
 
-            secs = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            secs = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == 0;
 
-            return new TimeValue (ValueType.datetimeType(), year, month, day, hours, mins, secs, 0);
+            return new TimeValue( ValueType.datetimeType(), year, month, day, hours, mins, secs, 0);
 
         case ValueType.HIRESTIME:
-            year = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            year = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '/';
             ++srcOffset;
 
-            month = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            month = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '/';
             ++srcOffset;
 
-            day = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            day = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == ' ';
             ++srcOffset;
 
-            hours = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            hours = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == ':';
             ++srcOffset;
 
-            mins = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            mins = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == ':';
             ++srcOffset;
 
-            secs = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            secs = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == '.';
             ++srcOffset;
 
-            usecs = (int) getIntegerJavaWeirdWay (src, srcOffset);
-            srcOffset += getIntegerStringLength (src, srcOffset);
+            usecs = (int) getIntegerJavaWeirdWay( src, srcOffset);
+            srcOffset += getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset] == 0;
 
-            return new TimeValue (ValueType.hirestimeType(), year, month, day, hours, mins, secs, usecs);
+            return new TimeValue( ValueType.hirestimeType(), year, month, day, hours, mins, secs, usecs);
 
         case ValueType.INT8:
         case ValueType.INT16:
@@ -266,45 +425,42 @@ public abstract class Value
         case ValueType.UINT16:
         case ValueType.UINT32:
         case ValueType.UINT64:
-            intSize = getIntegerStringLength (src, srcOffset);
+            intSize = getIntegerStringLength( src, srcOffset);
 
             assert src[srcOffset + intSize] == 0;
 
-            return new IntegerValue (type, new String (src, srcOffset, intSize, StandardCharsets.UTF_8));
+            return new IntegerValue( type, new String( src, srcOffset, intSize, StandardCharsets.UTF_8));
 
         case ValueType.REAL:
         case ValueType.RICHREAL:
-            intSize = getRealStringLength (src, srcOffset);
+            intSize = getRealStringLength( src, srcOffset);
 
             assert src[srcOffset + intSize] == 0;
 
-            return new RealValue (type, new String (src, srcOffset, intSize, StandardCharsets.UTF_8));
+            return new RealValue( type, new String( src, srcOffset, intSize, StandardCharsets.UTF_8));
 
         case ValueType.TEXT:
             temp = srcOffset;
             while (src[srcOffset] != 0)
                 ++srcOffset;
 
-            return new TextValue (new String (src, srcOffset, (int) (srcOffset - temp), StandardCharsets.UTF_8));
+            return new TextValue( new String( src, srcOffset, (int) (srcOffset - temp), StandardCharsets.UTF_8));
         }
 
-        throw new ConnException(CmdResult.INVALID_ARGS,
-                                "Unknown type to create a value!");
+        throw new ConnException( CmdResult.INVALID_ARGS, "Unknown type to create a value!");
     }
 
-    private static long getIntegerJavaWeirdWay (byte[] src, int offset)
+    private static long getIntegerJavaWeirdWay( byte[] src, int offset)
     {
         long result = 0;
         boolean isNegative = false;
 
-        if (src[offset] == '-')
-        {
+        if (src[offset] == '-') {
             ++offset;
             isNegative = true;
         }
 
-        while (('0' <= src[offset]) && (src[offset] <= '9'))
-        {
+        while (('0' <= src[offset]) && (src[offset] <= '9')) {
             result *= 10;
             result += src[offset++] - '0';
         }
@@ -315,7 +471,7 @@ public abstract class Value
         return result;
     }
 
-    private static int getIntegerStringLength (byte[] src, int offset)
+    private static int getIntegerStringLength( byte[] src, int offset)
     {
         final int originalOffset = offset;
 
@@ -328,7 +484,7 @@ public abstract class Value
         return offset - originalOffset;
     }
 
-    private static int getRealStringLength (byte[] src, int offset)
+    private static int getRealStringLength( byte[] src, int offset)
     {
         final int originalOffset = offset;
 
@@ -338,8 +494,7 @@ public abstract class Value
         while (('0' <= src[offset]) && (src[offset] <= '9'))
             ++offset;
 
-        if (src[offset] == '.')
-        {
+        if (src[offset] == '.') {
             ++offset;
             while (('0' <= src[offset]) && (src[offset] <= '9'))
                 ++offset;
@@ -348,5 +503,5 @@ public abstract class Value
         return offset - originalOffset;
     }
 
-    private ValueType type;
+    private ValueType mType;
 }

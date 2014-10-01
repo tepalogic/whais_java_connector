@@ -2,57 +2,54 @@ package net.whais.Client;
 
 class CharValue extends Value
 {
-    CharValue (String v) throws ConnException
+    CharValue(String v) throws ConnException
     {
-        super (ValueType.charType ());
+        super( ValueType.charType());
 
-        if ((v == null)
-            || (v.length () == 0))
-        {
-            this.value = 0;
-            return ;
+        if ((v == null) || (v.length() == 0)) {
+            mValue = 0;
+            return;
         }
 
-        if (v.codePointCount (0, v.length ()) > 1)
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS,
-                                     "The string used to construct a character value contains more than one code points");
+        if (v.codePointCount( 0, v.length()) > 1) {
+            throw new ConnException( CmdResult.INVALID_ARGS,
+                                     "The string used to construct a character value contains "
+                                     + "more than one code points");
         }
 
-        this.value = v.codePointAt(0);
+        mValue = v.codePointAt( 0);
     }
 
     @Override
-    public boolean equals (Object p)
+    public boolean equals( Object p)
     {
         if (this == p)
             return true;
-
-        else if ( ! (p instanceof CharValue))
+        else if (!(p instanceof CharValue))
             return false;
 
-        return this.getCodePoint () == ((CharValue) p).getCodePoint ();
+        return getCodePoint() == ((CharValue) p).getCodePoint();
     }
 
     @Override
-    public String toString ()
+    public String toString()
     {
-        if (this.isNull ())
-        return "";
+        if (isNull())
+            return "";
 
-        return new String (Character.toChars (this.value));
+        return new String( Character.toChars( mValue));
     }
 
     @Override
-    public boolean isNull ()
+    public boolean isNull()
     {
-        return this.value == 0;
+        return mValue == 0;
     }
 
-    public final int getCodePoint ()
+    public final int getCodePoint()
     {
-        return this.value;
+        return mValue;
     }
 
-    private final int value;
+    private final int mValue;
 }

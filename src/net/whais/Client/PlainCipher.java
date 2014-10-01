@@ -17,11 +17,10 @@ final class PlainCipher implements Cipher
     prepareAuthResponse (ByteBuffer frame, String database, byte[] key)
     {
         frame.position (_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_RSP_FIXED_SIZE);
-        frame.put (database.getBytes (StandardCharsets.UTF_8));
-        frame.put ((byte) 0);
-
-        frame.put(key);
-        frame.put ((byte) 0);
+        frame.put (database.getBytes (StandardCharsets.UTF_8))
+             .put ((byte) 0)
+             .put(key)
+             .put ((byte) 0);
 
         return frame.position ();
     }

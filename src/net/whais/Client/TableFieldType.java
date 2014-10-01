@@ -1,7 +1,11 @@
 package net.whais.Client;
 
 /**
- * Used to represent a description of Whais table's field.
+ * Used to describe a field of a WHAIS table.
+ * <p>
+ * For one to create a WHAIS table it needs to first identify its fields' names
+ * and types and then to create an array with these objects to be given as a
+ * parameter to {@link ValueType#create(TableFieldType[])}.
  *
  * @version 1.0
  *
@@ -13,87 +17,81 @@ public class TableFieldType implements Comparable<TableFieldType>
     /**
      * Instantiate a field description.
      *
-     * @param name  Whais table's field name.
-     * @param type  Whais table's field type.
+     * @param name
+     *            Table field's name.
+     * @param type
+     *            Table field's type..
      *
      * @throws ConnException
      *
      * @since 1.0
      */
-    public TableFieldType (String name, ValueType type) throws ConnException
+    public TableFieldType(String name, ValueType type) throws ConnException
     {
-        if ((name == null) || (name.length ()  == 0))
-            throw new ConnException (CmdResult.INVALID_ARGS, "A field type needs to have a name.");
-
+        if ((name == null) || (name.length() == 0))
+            throw new ConnException( CmdResult.INVALID_ARGS, "A field type needs to have a name.");
         else if (type == null)
-            throw new ConnException (CmdResult.INVALID_ARGS, "Invalid field definition.");
-
-        else if ((type.getBaseType () < ValueType.BOOL)
-                 || (type.getBaseType () >= ValueType.TYPE_NOTSET))
-
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS, "Invalid type for a field descriptor.");
+            throw new ConnException( CmdResult.INVALID_ARGS, "Invalid field definition.");
+        else if ((type.getBaseType() < ValueType.BOOL) || (type.getBaseType() >= ValueType.TYPE_NOTSET)) {
+            throw new ConnException( CmdResult.INVALID_ARGS, "Invalid type for a field descriptor.");
         }
 
-        this.fieldName = name;
-        this.fieldType = type;
+        mName = name;
+        mType = type;
 
-        if (this.fieldType.isField()
-            || this.fieldType.isTable ())
-        {
-            throw new ConnException (CmdResult.INVALID_ARGS, "Invalid type used for field definition");
+        if (mType.isField() || mType.isTable()) {
+            throw new ConnException( CmdResult.INVALID_ARGS, "Invalid type used for field definition");
         }
     }
 
     /**
-     * Get a string representation of a Whais table field.
+     * Returns a string representation of a WHAIS field table.
      */
     @Override
-    public final String toString ()
+    public final String toString()
     {
-        return this.getName () + " AS " + this.fieldType;
+        return getName() + " AS " + mType;
     }
 
     /**
-     * Get the name of a Whais table field.
-     *
-     * @return Field's name. This should have a size bigger than 0.
+     * Retrieve the name of the table field.
      *
      * @since 1.0
      */
-    public final String getName ()
+    public final String getName()
     {
-        return this.fieldName;
+        return mName;
     }
 
     /**
-     * Get the type of a Whais table field.
+     * Retrieve the type of a table field.
      *
-     * @return Field's type.
+     * @return
+     *            An object describing the field type.
      *
      * @since 1.0
-     * @see ValueType
      */
-    public final ValueType getType ()
+    public final ValueType getType()
     {
-        assert this.fieldType != null;
+        assert mType != null;
 
-        return this.fieldType;
+        return mType;
     }
 
     /*
      * Used internally to normalize the fields of a table.
      *
-     * @deprecated Should not be used.
+     * @deprecated Due to its internal usage this method should not be used.
+     *
      * @since 1.0
      */
     @Override
-    public int compareTo (TableFieldType o)
+    public int compareTo( TableFieldType o)
     {
-        return this.fieldName.compareTo (o.fieldName);
+        return mName.compareTo( o.mName);
     }
 
-    private final String    fieldName;
-    private final ValueType fieldType;
+    private final String mName;
+    private final ValueType mType;
 
 }

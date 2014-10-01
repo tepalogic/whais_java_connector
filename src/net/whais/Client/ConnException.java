@@ -2,47 +2,54 @@ package net.whais.Client;
 
 import java.io.IOException;
 
-
-
+/**
+ * Used to signal the error condition when dealing with a WHAIS server.
+ *
+ * @version 1.0
+ */
 public class ConnException extends IOException
 {
     private static final long serialVersionUID = 1L;
 
-    ConnException (String message)
+    ConnException(String message)
     {
-        super(message);
-        code = CmdResult.GENERAL_ERR;
+        super( message);
+        mCode = CmdResult.GENERAL_ERR;
     }
 
-    ConnException (Throwable cause)
+    ConnException(Throwable cause)
     {
-        super("Unexpected state encountered during command processing.", cause);
-        code = CmdResult.GENERAL_ERR;
+        super( "Unexpected state encountered during command processing.", cause);
+        mCode = CmdResult.GENERAL_ERR;
     }
 
-    ConnException (String message, Throwable cause)
+    ConnException(String message, Throwable cause)
     {
-        super (message, cause);
-        code = CmdResult.GENERAL_ERR;
+        super( message, cause);
+        mCode = CmdResult.GENERAL_ERR;
     }
-    
-    ConnException (int exceptCode, String s)
-    {
-       super (s);
-       code = exceptCode; 
 
-       assert s != null;
-    }
-    
-    ConnException (int exceptCode)
+    ConnException(int exceptCode, String s)
     {
-        this (exceptCode, CmdResult.translateResultCode (exceptCode));
+        super( s);
+        mCode = exceptCode;
+
+        assert s != null;
     }
-    
-    final public int getCode ()
+
+    ConnException(int exceptCode)
     {
-        return code;
+        this( exceptCode, CmdResult.translateResultCode( exceptCode));
     }
-    
-    final private int code;
+
+    /**
+     * Get the associated code with the signaled error cause.
+     * @return
+     */
+    final public int getCode()
+    {
+        return mCode;
+    }
+
+    final private int mCode;
 }

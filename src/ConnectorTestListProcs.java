@@ -56,7 +56,7 @@ public class ConnectorTestListProcs
 
     public static void main (String[] args) throws IOException
     {
-        String[]  customArgs = { "--root", "-d", "test_list_db_frame_size", "--fs", "65535" };
+        String[]  customArgs = { "--root", "-d", "test_list_db_frame_size", "--fs", "32768" };
         final int customCount = customArgs.length;
         customArgs = Arrays.copyOf(customArgs, customCount + args.length);
         for (int i = 0; i < args.length; ++i)

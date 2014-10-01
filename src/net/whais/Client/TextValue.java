@@ -1,40 +1,38 @@
 package net.whais.Client;
 
-
 class TextValue extends Value
 {
-    TextValue (String value)
+    TextValue(String value)
     {
-        super (ValueType.textType ());
-        this.value = value;
+        super( ValueType.textType());
+        mValue = value;
     }
 
     @Override
-    public boolean equals (Object p)
+    public boolean equals( Object p)
     {
         if (this == p)
             return true;
-
         else if ( ! (p instanceof TextValue))
             return false;
 
-        return this.toString().equals (p.toString());
+        return toString().equals( p.toString());
     }
 
     @Override
-    public String toString ()
+    public String toString()
     {
-        if (this.isNull ())
+        if (isNull())
             return "";
 
-        return this.value;
+        return mValue;
     }
 
     @Override
-    public boolean isNull ()
+    public boolean isNull()
     {
-        return (this.value == null) || (this.value.length () == 0);
+        return (mValue == null) || (mValue.length() == 0);
     }
 
-    private String value;
+    private String mValue;
 }

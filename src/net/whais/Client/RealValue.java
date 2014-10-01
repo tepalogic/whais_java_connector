@@ -2,21 +2,21 @@ package net.whais.Client;
 
 import java.math.BigDecimal;
 
-public class RealValue extends Value
+class RealValue extends Value
 {
-    RealValue (ValueType type, String value)
+    RealValue(ValueType type, String value)
     {
-        super (type);
+        super( type);
 
-        if ((value == null) || (value.length () == 0))
-            this.value = null;
+        if ((value == null) || (value.length() == 0))
+            mValue = null;
 
         else
-            this.value = new BigDecimal (value);
+            mValue = new BigDecimal( value);
     }
 
     @Override
-    public boolean equals (Object p)
+    public boolean equals( Object p)
     {
         if (this == p)
             return true;
@@ -25,39 +25,36 @@ public class RealValue extends Value
             return false;
 
         final RealValue o = (RealValue) p;
-        try
-        {
-            if ( ! this.type ().equals (o.type ()))
+        try {
+            if ( ! type().equals( o.type()))
                 return false;
-        }
-        catch (Throwable e)
-        {
+        } catch (Throwable e) {
             return false;
         }
 
-        if (this.isNull () != o.isNull())
+        if (isNull() != o.isNull())
             return false;
 
-        else if (this.isNull())
+        else if (isNull())
             return true;
 
-        return this.value.compareTo (o.value) == 0;
+        return mValue.compareTo( o.mValue) == 0;
     }
 
     @Override
-    public String toString ()
+    public String toString()
     {
-        if (this.isNull ())
+        if (isNull())
             return "";
 
-        return this.value.toString ();
+        return mValue.toString();
     }
 
     @Override
-    public boolean isNull ()
+    public boolean isNull()
     {
-        return (this.value == null);
+        return (mValue == null);
     }
 
-    private final  BigDecimal    value;
+    private final BigDecimal mValue;
 }

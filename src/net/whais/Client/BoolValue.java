@@ -2,67 +2,59 @@ package net.whais.Client;
 
 class BoolValue extends Value
 {
-    BoolValue (boolean value)
+    BoolValue(boolean value)
     {
-        super (ValueType.boolType());
+        super( ValueType.boolType());
 
-        this.value      = value;
-        this.nullValue  = false;
+        mValue = value;
+        mIsNull = false;
     }
 
-    BoolValue (String s)
+    BoolValue(String s)
     {
-        super (ValueType.boolType());
+        super( ValueType.boolType());
 
-        if ((s == null) || (s.length () == 0))
-        {
-            this.value      = false;
-            this.nullValue  = true;
-        }
-        else
-        {
-            this.nullValue = false;
-            this.value = (s.equals ("1")
-                          || s.toLowerCase().equals ("T")
-                          || s.toLowerCase().equals ("true"));
+        if ((s == null) || (s.length() == 0)) {
+            mValue = false;
+            mIsNull = true;
+        } else {
+            mIsNull = false;
+            mValue = (s.equals( "1") || s.toLowerCase().equals( "T") || s.toLowerCase().equals( "true"));
         }
     }
 
     @Override
-    public boolean equals (Object p)
+    public boolean equals( Object p)
     {
         if (this == p)
             return true;
-
         else if ( ! (p instanceof BoolValue))
             return false;
 
         final BoolValue o = (BoolValue) p;
-        if (this.isNull () != o.isNull())
+        if (isNull() != o.isNull())
             return false;
-
-        else if (this.isNull())
+        else if (isNull())
             return true;
 
-        return this.value == o.value;
+        return mValue == o.mValue;
     }
 
     @Override
-    public String toString ()
+    public String toString()
     {
-        if (this.isNull ())
+        if (isNull())
             return "";
 
-        else
-            return this.value ? "1" : "0";
+        return mValue ? "1" : "0";
     }
 
     @Override
-    public boolean isNull ()
+    public boolean isNull()
     {
-        return this.nullValue;
+        return mIsNull;
     }
 
-    private final boolean   value;
-    private final boolean   nullValue;
+    private final boolean mValue;
+    private final boolean mIsNull;
 }
