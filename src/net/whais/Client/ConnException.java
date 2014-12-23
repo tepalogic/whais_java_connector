@@ -45,6 +45,8 @@ public class ConnException extends IOException
     /**
      * Get the associated code with the signaled error cause.
      * @return
+     *          The numeric code corresponding to the exceptional situation.\
+     * @see CmdResult
      */
     final public int getCode()
     {
