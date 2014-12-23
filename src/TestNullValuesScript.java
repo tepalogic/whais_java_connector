@@ -39,6 +39,8 @@ public class TestNullValuesScript
         testResult &= test.executeTestNullGeneric (c, "null_test_1_1");
         testResult &= test.executeTestNull_1_2 (c);
         testResult &= test.executeTestNullGeneric (c, "null_test_1_3");
+        testResult &= test.executeTestNullGeneric (c, "null_test_1_4");
+        testResult &= test.executeTestNullGeneric (c, "null_test_1_5");
         testResult &= test.executeTestNull_2 (c);
         testResult &= test.executeTestNullGeneric (c, "null_test_2_1");
         testResult &= test.executeTestNull_2_2 (c);
