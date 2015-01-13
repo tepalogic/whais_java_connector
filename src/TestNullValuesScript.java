@@ -49,6 +49,10 @@ public class TestNullValuesScript
         testResult &= test.executeTestNullGeneric (c, "null_test_3_1");
         testResult &= test.executeTestNullGeneric (c, "null_test_4");
         testResult &= test.executeTestNullGeneric (c, "null_test_4_1");
+        testResult &= test.execTestNull_5 (c);
+        testResult &= test.execTestNull_5_1 (c);
+        testResult &= test.execTestNull_5_2 (c);
+        testResult &= test.execTestNull_5_3 (c);
 
         c.close ();
 
@@ -252,4 +256,71 @@ public class TestNullValuesScript
         return true;
     }
 
+    boolean execTestNull_5 (Connection c) throws IOException {
+        System.out.print ("Executing test procedure 'null_test_5' ... ");
+
+        TableFieldType[] fields = new TableFieldType[2];
+        fields[0] = new TableFieldType("field1", ValueType.textType());
+        fields[1] = new TableFieldType("field2", ValueType.uint32Type());
+
+        Value expectedResult = Value.createTable (fields);
+
+        c.executeProcedure ( "null_test_5");
+        Value result = c.retrieveStackTop ();
+        if ( ! result.equals(expectedResult)) {
+            System.out.println ("FAIL: The expected result does not match");
+            return false;
+        }
+
+        System.out.println (" OK");
+        return true;
+    }
+
+    boolean execTestNull_5_1 (Connection c) throws IOException {
+        System.out.print ("Executing test procedure 'null_test_5_1' ... ");
+
+        Value expectedResult = Value.createArray (ValueType.arrayInt32Type());
+
+        c.executeProcedure ( "null_test_5_1");
+        Value result = c.retrieveStackTop ();
+        if ( ! result.equals(expectedResult)) {
+            System.out.println ("FAIL: The expected result does not match");
+            return false;
+        }
+
+        System.out.println (" OK");
+        return true;
+    }
+
+    boolean execTestNull_5_2 (Connection c) throws IOException {
+        System.out.print ("Executing test procedure 'null_test_5_2' ... ");
+
+        Value expectedResult = Value.createBasic (ValueType.textType());
+
+        c.executeProcedure ( "null_test_5_2");
+        Value result = c.retrieveStackTop ();
+        if ( ! result.equals(expectedResult)) {
+            System.out.println ("FAIL: The expected result does not match");
+            return false;
+        }
+
+        System.out.println (" OK");
+        return true;
+    }
+
+    boolean execTestNull_5_3 (Connection c) throws IOException {
+        System.out.print ("Executing test procedure 'null_test_5_3' ... ");
+
+        Value expectedResult = Value.createBasic (ValueType.boolType());
+
+        c.executeProcedure ( "null_test_5_3");
+        Value result = c.retrieveStackTop ();
+        if ( ! result.equals(expectedResult)) {
+            System.out.println ("FAIL: The expected result does not match");
+            return false;
+        }
+
+        System.out.println (" OK");
+        return true;
+    }
 }
