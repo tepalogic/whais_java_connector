@@ -1,49 +1,77 @@
 package net.whais.Client;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
-final class PlainCipher implements Cipher
+
+class PlainCipher implements net.whais.Client.Cipher
 {
     @Override
-    public byte
-    type ()
+    public byte type ()
     {
         return _c.FRAME_ENCTYPE_PLAIN;
     }
 
     @Override
-    public int
-    prepareAuthResponse (ByteBuffer frame, String database, byte[] key)
-    {
-        frame.position (_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_RSP_FIXED_SIZE);
-        frame.put (database.getBytes (StandardCharsets.UTF_8))
-             .put ((byte) 0)
-             .put(key)
-             .put ((byte) 0);
-
-        return frame.position ();
-    }
-
-    @Override
-    public int
-    metadataSize ()
+    public int metadataSize ()
     {
         return _c.FRAME_HDR_SIZE +_c.PLAIN_HDR_SIZE;
     }
 
     @Override
-    public void
-    encodeFrame (CommunicationFrame frame, byte[] key)
+    public void encodeFrame (CommunicationFrame frame, Object key)
     {
-        return ; //No need for us to do anything here.
+        try {
+            final javax.crypto.Cipher cipher = this.getChiper ();
+            cipher.init (javax.crypto.Cipher.ENCRYPT_MODE, (SecretKeySpec) key);
+
+            final byte[] buff = frame.getCmdBuffer().array();
+            cipher.doFinal (buff, _c.FRAME_HDR_SIZE, 8, buff, _c.FRAME_HDR_SIZE);
+
+        } catch (Exception e) {
+            e.printStackTrace ();
+        }
     }
 
     @Override
-    public void
-    decodeFrame (CommunicationFrame frame, byte[] key)
+    public void decodeFrame (CommunicationFrame frame, Object key)
     {
-        return ; //No need for us to do anything here.
+        try {
+            final javax.crypto.Cipher cipher = this.getChiper ();
+            cipher.init (javax.crypto.Cipher.DECRYPT_MODE, (SecretKeySpec) key);
+
+            final byte[] buff = frame.getCmdBuffer().array();
+            cipher.doFinal (buff, _c.FRAME_HDR_SIZE, 8, buff, _c.FRAME_HDR_SIZE);
+
+        } catch (Exception e) {
+            e.printStackTrace ();
+        }
     }
 
+    @Override
+    public Object prepareKey( byte[] key)
+    {
+        byte[] _key = new byte[8];
+        for (int i = 0; i < _key.length; ++i)
+            _key[i] = (i < key.length) ? key[i] : 0;
+
+        try {
+            return new SecretKeySpec (_key, "DES");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    protected javax.crypto.Cipher getChiper ()
+    {
+        try {
+            return Cipher.getInstance("DES/ECB/NoPadding");
+        }catch (Exception e) {
+            e.printStackTrace ();
+        }
+
+        return null;
+    }
 }

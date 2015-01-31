@@ -21,21 +21,23 @@ class _c
     final static byte FRAME_ID_OFF               = 0x04;
     final static byte FRAME_HDR_SIZE             = 0x08;
 
-    final static byte FRAME_TYPE_NORMAL          = (byte) 0x00;
-    final static byte FRAME_TYPE_AUTH_CLNT       = (byte) 0x01;
-    final static byte FRAME_TYPE_AUTH_CLNT_RSP   = (byte) 0x02;
+    final static byte FRAME_TYPE_NORMAL          = 0x00;
+    final static byte FRAME_TYPE_AUTH_CLNT       = 0x01;
+    final static byte FRAME_TYPE_AUTH_CLNT_RSP   = 0x02;
     final static byte FRAME_TYPE_COMM_NOSYNC     = (byte) 0xFD;
     final static byte FRAME_TYPE_TIMEOUT         = (byte) 0xFE;
     final static byte FRAME_TYPE_SERV_BUSY       = (byte) 0xFF;
 
     final static byte FRAME_ENCTYPE_PLAIN        = 0x01;
     final static byte FRAME_ENCTYPE_3K           = 0x02;
+    final static byte FRAME_ENCTYPE_DES          = 0x03;
+    final static byte FRAME_ENCTYPE_3DES         = 0x04;
 
     final static byte ENC_3K_FIRST_KING_OFF      = 0x00;
     final static byte ENC_3K_SECOND_KING_OFF     = 0x04;
-    final static byte ENC_3K_PLAIN_SIZE_OFF      = 0x08;
-    final static byte ENC_3K_SPARE_OFF           = 0x0A;
-    final static byte ENC_3K_HDR_SIZE            = 0x0C;
+    final static byte ENC_PLAIN_SIZE_OFF         = 0x08;
+    final static byte ENC_SPARE_OFF              = 0x0A;
+    final static byte ENC_HDR_SIZE               = 0x0C;
 
     final static byte PLAIN_CLNT_COOKIE_OFF      = 0x00;
     final static byte PLAIN_SERV_COOKIE_OFF      = 0x04;
@@ -46,15 +48,17 @@ class _c
     final static byte FRAME_AUTH_VER_OFF         = 0x00;
     final static byte FRAME_AUTH_SIZE_OFF        = 0x04;
     final static byte FRAME_AUTH_SPARE_1_OFF     = 0x06;
-    final static byte FRAME_AUTH_ENC_OFF         = 0x08;
-    final static byte FRAME_AUTH_SPARE_2_OFF     = 0x09;
-    final static byte FRAME_AUTH_SIZE            = 0x0C;
+    final static byte FRAME_AUTH_CHALLENGE_OFF   = 0x08;
+    final static byte FRAME_AUTH_ENC_OFF         = 0x10;
+    final static byte FRAME_AUTH_SPARE_2_OFF     = 0x11;
+    final static byte FRAME_AUTH_SIZE            = 0x14;
 
-    final static byte FRAME_AUTH_RSP_VER_OFF     = 0x00;
-    final static byte FRAME_AUTH_RSP_USR_OFF     = 0x04;
-    final static byte FRAME_AUTH_RSP_ENC_OFF     = 0x05;
-    final static byte FRAME_AUTH_RSP_SIZE_OFF    = 0x06;
-    final static byte FRAME_AUTH_RSP_FIXED_SIZE  = 0x08;
+    final static byte FRAME_AUTH_RSP_VER_OFF         = 0x00;
+    final static byte FRAME_AUTH_RSP_USR_OFF         = 0x04;
+    final static byte FRAME_AUTH_RSP_ENC_OFF         = 0x05;
+    final static byte FRAME_AUTH_RSP_SIZE_OFF        = 0x06;
+    final static byte FRAME_AUTH_RSP_CHALLENGE_OFF   = 0x08;
+    final static byte FRAME_AUTH_RSP_FIXED_SIZE      = 0x10;
 
 
     final static short ADMIN_CMD_BASE            = 0x0000;
@@ -77,7 +81,6 @@ class _c
 
     final static short CMD_GLOBAL_DESC           = CMD_CLOSE_CONN_RSP + 1;
     final static short CMD_GLOBAL_DESC_RSP       = CMD_GLOBAL_DESC + 1;
-
 
     final static short CMD_READ_STACK            = CMD_GLOBAL_DESC_RSP + 1;
     final static short CMD_READ_STACK_RSP        = CMD_READ_STACK + 1;

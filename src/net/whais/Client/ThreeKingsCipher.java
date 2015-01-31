@@ -1,7 +1,6 @@
 package net.whais.Client;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 final class ThreeKingsCipher implements Cipher
 {
@@ -13,26 +12,16 @@ final class ThreeKingsCipher implements Cipher
     }
 
     @Override
-    public int prepareAuthResponse( ByteBuffer frame, String database, byte[] key)
-    {
-        frame.position( _c.FRAME_HDR_SIZE + _c.FRAME_AUTH_RSP_FIXED_SIZE);
-        frame.put( database.getBytes( StandardCharsets.UTF_8))
-             .put( (byte) 0);
-
-        return frame.position();
-    }
-
-    @Override
     public int metadataSize()
     {
-        return _c.FRAME_HDR_SIZE + _c.ENC_3K_HDR_SIZE + _c.PLAIN_HDR_SIZE;
+        return _c.FRAME_HDR_SIZE + _c.ENC_HDR_SIZE + _c.PLAIN_HDR_SIZE;
     }
 
     @Override
-    public void encodeFrame( CommunicationFrame frame, byte[] key)
+    public void encodeFrame( CommunicationFrame frame, Object key)
     {
+        final byte[] _key = (byte[]) key;
         final ByteBuffer buffer = frame.getCmdBuffer();
-
         int bufferSize = frame.getLastPosition();
         int plainSize = bufferSize;
 
@@ -55,37 +44,37 @@ final class ThreeKingsCipher implements Cipher
                                + ((byte) (Math.random() * 1024));
 
         buffer.putInt( _c.FRAME_HDR_SIZE + _c.ENC_3K_SECOND_KING_OFF, secondKing);
-        for (int i = 0, prev = 0; i < _c.ENC_3K_PLAIN_SIZE_OFF; ++i) {
+        for (int i = 0, prev = 0; i < _c.ENC_PLAIN_SIZE_OFF; ++i) {
             final byte b = buffer.get( _c.FRAME_HDR_SIZE + i);
-            buffer.put( _c.FRAME_HDR_SIZE + i, (byte) (b ^ key[prev % key.length]));
+            buffer.put( _c.FRAME_HDR_SIZE + i, (byte) (b ^ _key[prev % _key.length]));
             prev = b & 0xFF;
         }
 
-        buffer.putShort( _c.FRAME_HDR_SIZE + _c.ENC_3K_PLAIN_SIZE_OFF, (short) plainSize)
-              .putShort( _c.FRAME_HDR_SIZE + _c.ENC_3K_SPARE_OFF, (short) 0xFFFF);
+        buffer.putShort( _c.FRAME_HDR_SIZE + _c.ENC_PLAIN_SIZE_OFF, (short) plainSize);
 
-        encodeBuffer( buffer, _c.FRAME_HDR_SIZE + _c.ENC_3K_PLAIN_SIZE_OFF, bufferSize, key, firstKing, secondKing);
+        encodeBuffer( buffer, _c.FRAME_HDR_SIZE + _c.ENC_PLAIN_SIZE_OFF, bufferSize, _key, firstKing, secondKing);
         buffer.putShort( _c.FRAME_SIZE_OFF, (short) bufferSize);
     }
 
     @Override
-    public void decodeFrame( CommunicationFrame frame, byte[] key)
+    public void decodeFrame( CommunicationFrame frame, Object key)
     {
+        final byte[] _key = (byte[]) key;
         ByteBuffer buffer = frame.getCmdBuffer();
 
         int bufferSize = frame.getLastPosition();
 
-        for (int i = 0, prev = 0; i < _c.ENC_3K_PLAIN_SIZE_OFF; ++i) {
+        for (int i = 0, prev = 0; i < _c.ENC_PLAIN_SIZE_OFF; ++i) {
             byte b = buffer.get( _c.FRAME_HDR_SIZE + i);
-            b ^= key[prev % key.length];
+            b ^= _key[prev % _key.length];
             buffer.put( _c.FRAME_HDR_SIZE + i, b);
             prev = b & 0xFF;
         }
 
         final int firstKing = buffer.getInt( _c.FRAME_HDR_SIZE + _c.ENC_3K_FIRST_KING_OFF);
         final int secondKing = buffer.getInt( _c.FRAME_HDR_SIZE + _c.ENC_3K_SECOND_KING_OFF);
-        decodeBuffer( buffer, _c.FRAME_HDR_SIZE + _c.ENC_3K_PLAIN_SIZE_OFF, bufferSize, key, firstKing, secondKing);
-        int plainSize = buffer.getShort( _c.FRAME_HDR_SIZE + _c.ENC_3K_PLAIN_SIZE_OFF);
+        decodeBuffer( buffer, _c.FRAME_HDR_SIZE + _c.ENC_PLAIN_SIZE_OFF, bufferSize, _key, firstKing, secondKing);
+        int plainSize = buffer.getShort( _c.FRAME_HDR_SIZE + _c.ENC_PLAIN_SIZE_OFF);
         plainSize &= 0x0000FFFF;
 
         buffer.position( plainSize);
@@ -272,5 +261,11 @@ final class ThreeKingsCipher implements Cipher
         value |= (val1 << p2) | (val2 << p1);
 
         return value;
+    }
+
+    @Override
+    public Object prepareKey( byte[] key)
+    {
+        return key;
     }
 }

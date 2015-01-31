@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 class CommunicationFrame
@@ -23,7 +24,6 @@ class CommunicationFrame
         mRawFrame = ByteBuffer.allocate( _c.MIN_FRAME_SIZE).order( ByteOrder.LITTLE_ENDIAN);
         mExpectedFrameId = 0;
         mPendingCommand = _c.CMD_INVALID;
-        mKey = key;
         mCipher = CipherFactory.plainCipher();
 
         readRawFrame();
@@ -51,13 +51,31 @@ class CommunicationFrame
 
         case _c.FRAME_ENCTYPE_3K:
             mCipher = CipherFactory.threeKingsCipher();
-            serverFrameSize -= (serverFrameSize % 4);
+            serverFrameSize -= (serverFrameSize % 8);
+            break;
+
+        case _c.FRAME_ENCTYPE_DES:
+            mCipher = CipherFactory.desCipher();
+            serverFrameSize -= (serverFrameSize % 8);
+            break;
+
+        case _c.FRAME_ENCTYPE_3DES:
+            mCipher = CipherFactory.desedeCipher();
+            serverFrameSize -= (serverFrameSize % 8);
             break;
 
         default:
-            throw new ConnException( "The communication cipher used by the " + "server is not supported by this "
-                    + "client.");
+            throw new ConnException( "The communication cipher used by the "
+                                         + "server is not supported by this "
+                                         + "client.");
         }
+        mKey = mCipher.prepareKey (key);
+
+        final byte[] challengeRsp = CipherFactory.desCipher().encode (key,
+                                                                      mRawFrame.array(),
+                                                                      _c.FRAME_HDR_SIZE + _c.FRAME_AUTH_CHALLENGE_OFF,
+                                                                      8);
+        assert challengeRsp.length == 8;
 
         if (serverFrameSize != mRawFrame.capacity())
             mRawFrame = ByteBuffer.allocate( serverFrameSize).order( ByteOrder.LITTLE_ENDIAN);
@@ -71,9 +89,16 @@ class CommunicationFrame
                  .put( _c.FRAME_HDR_SIZE + _c.FRAME_AUTH_RSP_ENC_OFF, mCipher.type())
                  .putShort( _c.FRAME_HDR_SIZE + _c.FRAME_AUTH_RSP_SIZE_OFF, (short) serverFrameSize);
 
-        mRawFrameSize = mCipher.prepareAuthResponse( mRawFrame, database, key);
+        mRawFrame.position(_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_CHALLENGE_OFF);
+        for (int i = 0; i < challengeRsp.length; ++i)
+            mRawFrame.put(challengeRsp[i]);
+
+        mRawFrame.position (_c.FRAME_HDR_SIZE + _c.FRAME_AUTH_RSP_FIXED_SIZE);
+        mRawFrame.put (database.getBytes (StandardCharsets.UTF_8))
+                 .put ((byte) 0);
 
         mRawFrame.putShort( _c.FRAME_SIZE_OFF, (short) mRawFrameSize);
+
         mOStream.write( mRawFrame.array(), 0, mRawFrameSize);
 
         // Make sure we have a clean status
@@ -280,7 +305,9 @@ class CommunicationFrame
                 bytesRead += count;
             }
             mRawFrameSize = expected;
-            mCipher.decodeFrame( this, mKey);
+
+            if (mRawFrame.get( _c.FRAME_TYPE_OFF) == _c.FRAME_TYPE_NORMAL)
+                mCipher.decodeFrame( this, mKey);
 
             return;
         }
@@ -304,6 +331,7 @@ class CommunicationFrame
     {
         assert mRawFrameSize >= mCipher.metadataSize();
 
+        mRawFrame.put (_c.FRAME_TYPE_OFF, frameType);
         mRawFrame.putShort( _c.FRAME_SIZE_OFF, (short) mRawFrameSize);
         mRawFrame.put( _c.FRAME_ENCTYPE_OFF, mCipher.type());
         mRawFrame.putInt( _c.FRAME_ID_OFF, mExpectedFrameId++);
@@ -325,5 +353,5 @@ class CommunicationFrame
     private int mServerCookie;
     private short mLastReceivedRsp;
     private short mPendingCommand;
-    private byte[] mKey;
+    private Object mKey;
 }

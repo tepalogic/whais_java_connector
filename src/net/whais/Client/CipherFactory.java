@@ -18,6 +18,22 @@ final class CipherFactory
         return sCipher3K;
     }
 
+    static DESCipher desCipher () {
+        if (sCipherDES == null)
+            sCipherDES = new DESCipher();
+
+        return sCipherDES;
+    }
+
+    static DESCipher desedeCipher () {
+        if (sCipher3DES == null)
+            sCipher3DES = new DESedeChiper();
+
+        return sCipher3DES;
+    }
+
     static PlainCipher sCipherPlain;
     static ThreeKingsCipher sCipher3K;
+    static DESCipher sCipherDES;
+    static DESedeChiper sCipher3DES;
 }

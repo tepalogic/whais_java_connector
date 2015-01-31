@@ -31,8 +31,6 @@ public class TestGlobalsValuesSemanticsScript
                                        (byte) cmdLine.getUserId (),
                                        cmdLine.getMaxFrameSize ());
 
-        TestNullValuesScript test = new TestNullValuesScript ();
-
         boolean testResult = executeTest (c, 1);
         testResult &= executeTest (c, 2);
 
