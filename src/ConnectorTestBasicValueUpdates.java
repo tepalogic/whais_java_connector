@@ -798,7 +798,7 @@ public class ConnectorTestBasicValueUpdates
                                 "-d",
                                 "test_list_db_frame_size",
                                 "--fs",
-                                "32768"
+                                "65535"
                                };
 
         final int customCount = customArgs.length;

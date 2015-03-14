@@ -217,6 +217,231 @@ public abstract class Value
     }
 
     /**
+     * Wrapper to create a Whais boolean value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createBool (String s) throws ConnException
+    {
+        return createBasic (ValueType.boolType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais char value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createChar (String s) throws ConnException
+    {
+        return createBasic (ValueType.charType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais date value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createDate (String s) throws ConnException
+    {
+        return createBasic (ValueType.dateType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais date and time value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createDateTime (String s) throws ConnException
+    {
+        return createBasic (ValueType.datetimeType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais high resolution value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createHiresTime (String s) throws ConnException
+    {
+        return createBasic (ValueType.hirestimeType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 8 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt8 (String s) throws ConnException
+    {
+        return createBasic (ValueType.int8Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 16 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt16 (String s) throws ConnException
+    {
+        return createBasic (ValueType.int16Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 32 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt32 (String s) throws ConnException
+    {
+        return createBasic (ValueType.int32Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 64 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt64 (String s) throws ConnException
+    {
+        return createBasic (ValueType.int64Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 8 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt8 (String s) throws ConnException
+    {
+        return createBasic (ValueType.uint8Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 16 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt16 (String s) throws ConnException
+    {
+        return createBasic (ValueType.uint16Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 32 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt32 (String s) throws ConnException
+    {
+        return createBasic (ValueType.uint32Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 64 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt64 (String s) throws ConnException
+    {
+        return createBasic (ValueType.uint64Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais real value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createReal (String s) throws ConnException
+    {
+        return createBasic (ValueType.realType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais rich real value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createRichReal (String s) throws ConnException
+    {
+        return createBasic (ValueType.richrealType (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais text value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createText (String s) throws ConnException
+    {
+        return createBasic (ValueType.textType (), s);
+    }
+
+
+    /**
      * Create an array of WHAIS values.
      *
      * @param type
@@ -290,7 +515,7 @@ public abstract class Value
         return new TableValue( fields);
     }
 
-    static Value createBasic( ValueType type, byte[] src, int srcOffset) throws ConnException
+    protected static Value createBasic( ValueType type, byte[] src, int srcOffset) throws ConnException
     {
         if (!type.isBasic()) {
             throw new ConnException( CmdResult.INVALID_ARGS, "This function may create only basic type values.");

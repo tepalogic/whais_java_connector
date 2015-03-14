@@ -779,6 +779,10 @@ public class Connection
 
         mFrame.markBufferPositionValid();
         mFrame.sendCommand( _c.CMD_EXEC_PROC);
+
+        final int cmdRsp = mFrame.getCmdBuffer().getInt();
+        if (cmdRsp != CmdResult.OK)
+            throw new ConnException( cmdRsp);
     }
 
     /**

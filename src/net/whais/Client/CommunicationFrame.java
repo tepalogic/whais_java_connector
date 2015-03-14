@@ -181,6 +181,11 @@ class CommunicationFrame
 
         sendCommand( mPendingCommand);
 
+        final ByteBuffer b = getCmdBuffer();
+        final int cmdRsp = b.getInt();
+        if (cmdRsp != CmdResult.OK)
+            throw new ConnException( cmdRsp);
+
         mPendingCommand = _c.CMD_INVALID;
     }
 

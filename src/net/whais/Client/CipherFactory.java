@@ -32,8 +32,8 @@ final class CipherFactory
         return sCipher3DES;
     }
 
-    static PlainCipher sCipherPlain;
-    static ThreeKingsCipher sCipher3K;
-    static DESCipher sCipherDES;
-    static DESedeChiper sCipher3DES;
+    static PlainCipher          sCipherPlain;
+    static ThreeKingsCipher     sCipher3K;
+    static DESCipher            sCipherDES;
+    static DESedeChiper         sCipher3DES;
 }

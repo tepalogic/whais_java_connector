@@ -9,7 +9,7 @@ import net.whais.Client.ValueType;
 import test.net.whais.Client.CommnandLine;
 
 
-public class TestNullValuesScript
+public class TestNullValueConditions
 {
     public static void main (String[] args) throws IOException
     {
@@ -33,9 +33,11 @@ public class TestNullValuesScript
                                        (byte) cmdLine.getUserId (),
                                        cmdLine.getMaxFrameSize ());
 
-        TestNullValuesScript test = new TestNullValuesScript ();
+        TestNullValueConditions test = new TestNullValueConditions ();
 
-        boolean testResult = test.executeTestNull_1 (c);
+        boolean testResult = true;
+
+        testResult &= test.executeTestNull_1 (c);
         testResult &= test.executeTestNullGeneric (c, "null_test_1_1");
         testResult &= test.executeTestNull_1_2 (c);
         testResult &= test.executeTestNullGeneric (c, "null_test_1_3");

@@ -416,7 +416,7 @@ public class ConnectorTestFieldValuesReturns {
                                 "-d",
                                 "test_exec_db",
                                 "--fs",
-                                "32768"
+                                "65535"
                                };
 
         final int customCount = customArgs.length;
