@@ -241,6 +241,7 @@ public class Connection
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
 
+        mFrame.discardCommandBuffer();
         mFrame.sendCommand( _c.CMD_PING_SERVER);
         final int cmdResult = mFrame.getCmdBuffer().getInt();
         mFrame.discardCommandBuffer();
@@ -595,7 +596,7 @@ public class Connection
      */
     public void pushStackValue( ValueType type) throws IOException
     {
-        if (!mFrame.hasPendingCommands())
+        if ( ! mFrame.hasPendingCommands())
             mFrame.discardCommandBuffer();
         else if (mFrame.getPendingCommand() != _c.CMD_UPDATE_STACK)
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -759,7 +760,7 @@ public class Connection
      */
     public void executeProcedure( final String name) throws IOException
     {
-        if (!mFrame.hasPendingCommands())
+        if ( ! mFrame.hasPendingCommands())
             mFrame.discardCommandBuffer();
         else if (mFrame.getPendingCommand() == _c.CMD_UPDATE_STACK)
             flushStackUpdates();

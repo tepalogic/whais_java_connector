@@ -104,6 +104,10 @@ public final class CmdResult
             s = "Procedure not found.";
             break;
 
+        case CmdResult.PROC_RUNTIME_ERR:
+            s = "Procedure execution has failed because of a runtime error.";
+            break;
+
         case CmdResult.GENERAL_ERR:
             s = "Unexpected internal error.";
             break;
@@ -136,5 +140,6 @@ public final class CmdResult
     final static public int INVALID_FIELD = 18;
     final static public int TYPE_MISMATCH = 19;
     final static public int PROC_NOTFOUND = 20;
+    final static public int PROC_RUNTIME_ERR = 21;
     final static public int GENERAL_ERR = 0x0FFF;
 }
