@@ -755,6 +755,7 @@ public class Connection
      * @see #retrieveStackTop(String, long)
      * @see #retrieveStackTopRowsCount()
      * @see #flushStackUpdates()
+     * @see #callProcedure(String, Value...)
      *
      * @since 1.0
      */
@@ -1470,6 +1471,45 @@ public class Connection
         assert type.isBasic();
 
         return Value.createBasic( type, buffer.array(), buffer.position());
+    }
+
+    /**
+     * Simple wrapper to execute a WHAIS procedure.
+     * <p>
+     * This method provides the functionality of a quick call for a WHAIS procedures. It automatically populates the
+     * connection stack with procedures' parameters and pops the execution result after it retrieves it. The goal is to
+     * leave connection's stack unchanged this method was called.
+     *
+     * @return
+     *          The value result after the execution of a WHAIS procedure. The value is cleared from the stack so one
+     *          cannot use {@link #describeStackTop()} to get information about the type of the result.
+     *
+     * @param procName
+     *          The name of the WHAIS procedure to execute.
+     * @param params
+     *          The WHAIS procedures parameters. The first parameter (or the first array element) is the first parameter
+     *          of the WHAIS procedure, the second parameter matches the second WHAIS procedure parameter and so one.
+     *          Is the caller responsibility to properly match the supplied parameters count and types against the ones
+     *          from the WHAIS procedure's signature.
+     *
+     * @throws IOException
+     *
+     * @see #describeStackTop()
+     * @see #executeProcedure(String)
+     *
+     * @since 1.0
+     */
+    public Value callProcedure(final String procName, final Value... params) throws IOException {
+
+        if (params != null) {
+            for (Value p : params)
+                pushStackValue(p);
+        }
+        executeProcedure (procName);
+        final Value result = retrieveStackTop();
+
+        popStackValues(1);
+        return result;
     }
 
     private final void updateStackTopBasic( Value value) throws IOException
