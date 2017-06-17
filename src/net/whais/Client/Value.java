@@ -465,8 +465,6 @@ public abstract class Value
     {
         if (!(type.isArray() || type.isBasic())) {
             throw new ConnException( CmdResult.INVALID_ARGS, "Invalid type provided to create a type.");
-        } else if (type.getBaseType() == ValueType.TYPE_NOTSET) {
-            throw new ConnException( CmdResult.INVALID_ARGS, "Cannot create an undefined array.");
         }
 
         ArrayValue result = new ArrayValue( ValueType.create( type.getBaseType() | ValueType.ARRAY_MASK));
