@@ -50,6 +50,7 @@ public class TestNullValueConditions
         testResult &= test.executeTestNullGeneric (c, "null_test_3");
         testResult &= test.executeTestNullGeneric (c, "null_test_3_1");
         testResult &= test.executeTestNullGeneric (c, "null_test_4");
+        testResult &= test.executeTestNullGeneric (c, "null_test_4_1a");
         testResult &= test.executeTestNullGeneric (c, "null_test_4_1");
         testResult &= test.execTestNull_5 (c);
         testResult &= test.execTestNull_5_1 (c);
@@ -145,6 +146,12 @@ public class TestNullValueConditions
             System.out.println ("FAIL: At the second execution, the expected result does not match.");
             return false;
         }
+        c.executeProcedure ( test);
+        result = c.retrieveStackTop ();
+        if ( ! expectedResult.equals(result)) {
+            System.out.println ("FAIL: At the third execution, the expected result does not match.");
+            return false;
+        }
 
         System.out.println (" OK");
         return true;
@@ -237,7 +244,7 @@ public class TestNullValueConditions
     boolean executeTestNull_2_2 (Connection c) throws IOException {
 
         System.out.print ("Executing test procedure 'null_test_2_2' ... ");
-        Value expectedResult = Value.createArray (ValueType.int8Type (), "-10");
+        Value expectedResult = Value.createBool( "true");
 
         c.executeProcedure ( "null_test_2_2");
         Value result = c.retrieveStackTop ();
@@ -251,6 +258,12 @@ public class TestNullValueConditions
         result = c.retrieveStackTop ();
         if ( ! expectedResult.equals(result)) {
             System.out.println ("FAIL: At the second execution, the expected result does not match.");
+            return false;
+        }
+        c.executeProcedure ( "null_test_2_2");
+        result = c.retrieveStackTop ();
+        if ( ! expectedResult.equals(result)) {
+            System.out.println ("FAIL: At the third execution, the expected result does not match.");
             return false;
         }
 
