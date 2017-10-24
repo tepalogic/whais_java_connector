@@ -111,6 +111,9 @@ public final class CmdResult
         case CmdResult.GENERAL_ERR:
             s = "Unexpected internal error.";
             break;
+            
+        case CmdResult.VALUE_OUT_OF_RANGE:
+            s = "A value cannot be created because the specified type cannot hold it.";
 
         default:
             assert false;
@@ -141,5 +144,6 @@ public final class CmdResult
     final static public int TYPE_MISMATCH = 19;
     final static public int PROC_NOTFOUND = 20;
     final static public int PROC_RUNTIME_ERR = 21;
+    final static public int VALUE_OUT_OF_RANGE = 22;
     final static public int GENERAL_ERR = 0x0FFF;
 }

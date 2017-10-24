@@ -229,6 +229,34 @@ public abstract class Value
     {
         return createBasic (ValueType.boolType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais boolean value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createBool (boolean s) throws ConnException
+    {
+        return createBasic (ValueType.boolType (), s ? "1" : "0");
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL boolean value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createBool () throws ConnException
+    {
+        return createBasic (ValueType.boolType (), null);
+    }
 
     /**
      * Wrapper to create a Whais char value.
@@ -243,6 +271,36 @@ public abstract class Value
     {
         return createBasic (ValueType.charType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais char value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createChar (char c) throws ConnException
+    {
+        return createBasic (ValueType.charType (), "" + c);
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL char value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createChar () throws ConnException
+    {
+        return createBasic (ValueType.charType (), null);
+    }
+
+
 
     /**
      * Wrapper to create a Whais date value.
@@ -257,6 +315,21 @@ public abstract class Value
     {
         return createBasic (ValueType.dateType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais NULL date value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createDate () throws ConnException
+    {
+        return createBasic (ValueType.dateType (), null);
+    }
+
 
     /**
      * Wrapper to create a Whais date and time value.
@@ -270,6 +343,20 @@ public abstract class Value
     public static Value createDateTime (String s) throws ConnException
     {
         return createBasic (ValueType.datetimeType (), s);
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL date and time value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createDateTime () throws ConnException
+    {
+        return createBasic (ValueType.datetimeType (), null);
     }
 
     /**
@@ -285,6 +372,20 @@ public abstract class Value
     {
         return createBasic (ValueType.hirestimeType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais NULL high resolution value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createHiresTime () throws ConnException
+    {
+        return createBasic (ValueType.hirestimeType (), null);
+    }
 
     /**
      * Wrapper to create a Whais 8 bit integer value.
@@ -297,8 +398,57 @@ public abstract class Value
      */
     public static Value createInt8 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if ((l < -128) || (l > 127))
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a INT8 with to hold " + l);
+        }
         return createBasic (ValueType.int8Type (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais 8 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt8 (int i) throws ConnException
+    {
+        return createInt8((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 8 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt8 (long l) throws ConnException
+    {
+        return createBasic (ValueType.int8Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 8 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt8 () throws ConnException
+    {
+        return createBasic (ValueType.int8Type (), null);
+    }
+
 
     /**
      * Wrapper to create a Whais 16 bit integer value.
@@ -311,7 +461,56 @@ public abstract class Value
      */
     public static Value createInt16 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if ((l < -32768) || (l > 32767))
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a INT16 with to hold " + l);
+        }
         return createBasic (ValueType.int16Type (), s);
+    }
+    
+    /**
+     * Wrapper to create a Whais 16 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt16 (int i) throws ConnException
+    {
+        return createInt16((long)i);
+    }
+    
+    
+    /**
+     * Wrapper to create a Whais 16 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt16 (long l) throws ConnException
+    {
+        return createBasic (ValueType.int16Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 16 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt16 () throws ConnException
+    {
+        return createBasic (ValueType.int16Type (), null);
     }
 
     /**
@@ -325,7 +524,56 @@ public abstract class Value
      */
     public static Value createInt32 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if ((l < Integer.MIN_VALUE) || (l > Integer.MAX_VALUE))
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a INT32 with to hold " + l);
+        }
+        
         return createBasic (ValueType.int32Type (), s);
+    }
+    
+    /**
+     * Wrapper to create a Whais 32 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt32 (int i) throws ConnException
+    {
+        return createInt32((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 32 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt32 (long l) throws ConnException
+    {
+        return createBasic (ValueType.int32Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 32 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt32 () throws ConnException
+    {
+        return createBasic (ValueType.int32Type (), null);
     }
 
     /**
@@ -343,6 +591,49 @@ public abstract class Value
     }
 
     /**
+     * Wrapper to create a Whais 64 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt64 (int i) throws ConnException
+    {
+        return createInt64((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 64 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt64 (long l) throws ConnException
+    {
+        return createBasic (ValueType.int64Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 64 bit integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createInt64 () throws ConnException
+    {
+        return createBasic (ValueType.int64Type (), null);
+    }
+
+
+    /**
      * Wrapper to create a Whais 8 bit unsigned integer value.
      *
      * @throws ConnException
@@ -353,7 +644,55 @@ public abstract class Value
      */
     public static Value createUInt8 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if ((l < 0) || (l > 255))
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a UINT8 with to hold " + l);
+        }
         return createBasic (ValueType.uint8Type (), s);
+    }
+    
+    /**
+     * Wrapper to create a Whais 8 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt8 (int i) throws ConnException
+    {
+        return createUInt8((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 8 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt8 (long l) throws ConnException
+    {
+        return createBasic (ValueType.uint8Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 8 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt8 () throws ConnException
+    {
+        return createBasic (ValueType.uint8Type (), null);
     }
 
     /**
@@ -367,8 +706,57 @@ public abstract class Value
      */
     public static Value createUInt16 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if ((l < 0) || (l > 65535))
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a UINT16 with to hold " + l);
+        }
         return createBasic (ValueType.uint16Type (), s);
     }
+
+    /**
+     * Wrapper to create a Whais 16 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt16 (int i) throws ConnException
+    {
+        return createUInt16((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 16 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt16 (long l) throws ConnException
+    {
+        return createBasic (ValueType.uint16Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 16 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt16 () throws ConnException
+    {
+        return createBasic (ValueType.uint16Type (), null);
+    }
+
 
     /**
      * Wrapper to create a Whais 32 bit unsigned integer value.
@@ -381,7 +769,55 @@ public abstract class Value
      */
     public static Value createUInt32 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if ((l < 0) || (l > 2147483647 ))
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a UINT32 with to hold " + l);
+        }
         return createBasic (ValueType.uint32Type (), s);
+    }
+
+    /**
+     * Wrapper to create a Whais 32 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt32 (int i) throws ConnException
+    {
+        return createUInt32((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 32 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt32 (long l) throws ConnException
+    {
+        return createBasic (ValueType.uint32Type (), Long.toString(l));
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL 32 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt32 () throws ConnException
+    {
+        return createBasic (ValueType.uint32Type (), null);
     }
 
     /**
@@ -395,8 +831,57 @@ public abstract class Value
      */
     public static Value createUInt64 (String s) throws ConnException
     {
+        if ((s != null) && ! s.isEmpty())
+        {
+            final Long l = Long.parseLong( s);
+            if (l < 0)
+                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a UINT64 with to hold " + l);
+        }
         return createBasic (ValueType.uint64Type (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais 64 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt64 (int i) throws ConnException
+    {
+        return createUInt64((long)i);
+    }
+    
+    /**
+     * Wrapper to create a Whais 64 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt64 (long l) throws ConnException
+    {
+        return createBasic (ValueType.uint64Type (), Long.toString(l));
+    }
+
+    /**
+     * Wrapper to create a Whais NULL 64 bit unsigned integer value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createUInt64 () throws ConnException
+    {
+        return createBasic (ValueType.uint64Type (), null);
+    }
+
 
     /**
      * Wrapper to create a Whais real value.
@@ -411,6 +896,35 @@ public abstract class Value
     {
         return createBasic (ValueType.realType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais real value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createReal (Double d) throws ConnException
+    {
+        return createBasic (ValueType.realType (), d == null ? null : d.toString());
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL real value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createReal () throws ConnException
+    {
+        return createBasic (ValueType.realType (), null);
+    }
+
 
     /**
      * Wrapper to create a Whais rich real value.
@@ -425,6 +939,35 @@ public abstract class Value
     {
         return createBasic (ValueType.richrealType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais rich real value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createRichReal (Double d) throws ConnException
+    {
+        return createBasic (ValueType.richrealType (), d == null ?  null : d.toString());
+    }
+    
+    /**
+     * Wrapper to create a Whais NULL rich real value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createRichReal () throws ConnException
+    {
+        return createBasic (ValueType.richrealType (), null);
+    }
+
 
     /**
      * Wrapper to create a Whais text value.
@@ -439,6 +982,22 @@ public abstract class Value
     {
         return createBasic (ValueType.textType (), s);
     }
+    
+    /**
+     * Wrapper to create a Whais NULL text value.
+     *
+     * @throws ConnException
+     *
+     * @see #createBasic(ValueType, String)
+     *
+     * @since  1.0
+     */
+    public static Value createText () throws ConnException
+    {
+        return createBasic (ValueType.textType (), null);
+    }
+
+
 
 
     /**
