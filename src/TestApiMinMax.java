@@ -49,29 +49,29 @@ public class TestApiMinMax
         testResult &= test.executeTest( c, "min_htime", Value.createHiresTime( "-32768/1/1 0:0:0.0"));
         testResult &= test.executeTest( c, "max_htime", Value.createHiresTime( "32767/12/31 23:59:59.999999"));
 
-        testResult &= test.executeTest( c, "min_i8", Value.createInt8("-128"));
-        testResult &= test.executeTest( c, "max_i8", Value.createInt8("127"));
+        testResult &= test.executeTest( c, "min_s8", Value.createInt8("-128"));
+        testResult &= test.executeTest( c, "max_s8", Value.createInt8("127"));
 
-        testResult &= test.executeTest( c, "min_i16", Value.createInt16("-32768"));
-        testResult &= test.executeTest( c, "max_i16", Value.createInt16("32767"));
+        testResult &= test.executeTest( c, "min_s16", Value.createInt16("-32768"));
+        testResult &= test.executeTest( c, "max_s16", Value.createInt16("32767"));
 
-        testResult &= test.executeTest( c, "min_i32", Value.createInt32("-2147483648"));
-        testResult &= test.executeTest( c, "max_i32", Value.createInt32("2147483647"));
+        testResult &= test.executeTest( c, "min_s32", Value.createInt32("-2147483648"));
+        testResult &= test.executeTest( c, "max_s32", Value.createInt32("2147483647"));
 
-        testResult &= test.executeTest( c, "min_i64", Value.createInt64("-9223372036854775808"));
-        testResult &= test.executeTest( c, "max_i64", Value.createInt64("9223372036854775807"));
+        testResult &= test.executeTest( c, "min_s64", Value.createInt64("-9223372036854775808"));
+        testResult &= test.executeTest( c, "max_s64", Value.createInt64("9223372036854775807"));
 
 
-        testResult &= test.executeTest( c, "min_u8", Value.createUInt8("0"));
+//        testResult &= test.executeTest( c, "min_u8", Value.createUInt8("0"));
         testResult &= test.executeTest( c, "max_u8", Value.createUInt8("255"));
 
-        testResult &= test.executeTest( c, "min_u16", Value.createUInt16("0"));
+//        testResult &= test.executeTest( c, "min_u16", Value.createUInt16("0"));
         testResult &= test.executeTest( c, "max_u16", Value.createUInt16("65535"));
 
-        testResult &= test.executeTest( c, "min_u32", Value.createUInt32("0"));
+//        testResult &= test.executeTest( c, "min_u32", Value.createUInt32("0"));
         testResult &= test.executeTest( c, "max_u32", Value.createUInt32("4294967295"));
 
-        testResult &= test.executeTest( c, "min_u64", Value.createUInt64("0"));
+//        testResult &= test.executeTest( c, "min_u64", Value.createUInt64("0"));
         testResult &= test.executeTest( c, "max_u64", Value.createUInt64("18446744073709551615"));
 
         testResult &= test.executeTest( c, "min_real", Value.createReal("-549755813888.999999"));

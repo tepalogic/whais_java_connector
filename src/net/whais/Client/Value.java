@@ -772,7 +772,7 @@ public abstract class Value
         if ((s != null) && ! s.isEmpty())
         {
             final Long l = Long.parseLong( s);
-            if ((l < 0) || (l > 2147483647 ))
+            if ((l < 0) || (l > 4294967295l ))
                 throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a UINT32 with to hold " + l);
         }
         return createBasic (ValueType.uint32Type (), s);
@@ -831,12 +831,6 @@ public abstract class Value
      */
     public static Value createUInt64 (String s) throws ConnException
     {
-        if ((s != null) && ! s.isEmpty())
-        {
-            final Long l = Long.parseLong( s);
-            if (l < 0)
-                throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a UINT64 with to hold " + l);
-        }
         return createBasic (ValueType.uint64Type (), s);
     }
     
