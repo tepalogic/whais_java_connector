@@ -57,6 +57,7 @@ public class TestWhaisText
         testResult &= t.executeTestTextReplaceSubstring(c);
         testResult &= t.executeTestTextCompare(c);
         testResult &= t.executeTestTextHash(c);
+
         
         c.close ();
 
@@ -334,8 +335,8 @@ public class TestWhaisText
     }
     
     boolean executeTestUpper(Connection c) throws IOException {
-        System.out.print("Check to_upper with NULL parameter ... ");
-        Value result = c.callProcedure( "to_upper", Value.createChar(null));
+        System.out.print("Check upper with NULL parameter ... ");
+        Value result = c.callProcedure( "upper", Value.createChar(null));
         final ValueType expected = ValueType.create(ValueType.CHAR);
         if (! result.type().equals(expected)) {
             System.out.println("FAIL (the type retrieved is " + result.type() + "rather than expected." + expected + ")");
@@ -348,8 +349,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_upper with 'a' parameter ... ");
-        result = c.callProcedure( "to_upper", Value.createChar("a"));
+        System.out.print("Check upper with 'a' parameter ... ");
+        result = c.callProcedure( "upper", Value.createChar("a"));
         if (! result.equals( Value.createChar("A"))) {
             System.out.println("FAIL (got " + result + " rather than A value.");
             return false;
@@ -357,8 +358,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_upper with 'B' parameter ... ");
-        result = c.callProcedure( "to_upper", Value.createChar("B"));
+        System.out.print("Check upper with 'B' parameter ... ");
+        result = c.callProcedure( "upper", Value.createChar("B"));
         if ( ! result.equals( Value.createChar("B"))) {
             System.out.println("FAIL (got " + result + " rather than B value.");
             return false;
@@ -370,8 +371,8 @@ public class TestWhaisText
     }
     
     boolean executeTestLower(Connection c) throws IOException {
-        System.out.print("Check to_lower with NULL parameter ... ");
-        Value result = c.callProcedure( "to_lower", Value.createChar(null));
+        System.out.print("Check lower with NULL parameter ... ");
+        Value result = c.callProcedure( "lower", Value.createChar(null));
         final ValueType expected = ValueType.create(ValueType.CHAR);
         if (! result.type().equals(expected)) {
             System.out.println("FAIL (the type retrieved is " + result.type() + "rather than expected." + expected + ")");
@@ -384,8 +385,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_lower with 'a' parameter ... ");
-        result = c.callProcedure( "to_lower", Value.createChar("a"));
+        System.out.print("Check lower with 'a' parameter ... ");
+        result = c.callProcedure( "lower", Value.createChar("a"));
         if ( ! result.equals( Value.createChar("a"))) {
             System.out.println("FAIL (got " + result + " rather than 'a' value.");
             return false;
@@ -393,8 +394,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_lower with 'B' parameter ... ");
-        result = c.callProcedure( "to_lower", Value.createChar("B"));
+        System.out.print("Check lower with 'B' parameter ... ");
+        result = c.callProcedure( "lower", Value.createChar("B"));
         
         if ( ! result.equals( Value.createChar("b"))) {
             System.out.println("FAIL (got " + result + " rather than 'b; value.");
@@ -407,8 +408,8 @@ public class TestWhaisText
     }
     
     boolean executeTestUpperAll(Connection c) throws IOException {
-        System.out.print("Check to_uppercase with NULL parameter ... ");
-        Value result = c.callProcedure( "to_uppercase", Value.createText(null));
+        System.out.print("Check upper_all with NULL parameter ... ");
+        Value result = c.callProcedure( "upper_all", Value.createText(null));
         final ValueType expected = ValueType.create(ValueType.TEXT);
         if (! result.type().equals(expected)) {
             System.out.println("FAIL (the type retrieved is " + result.type() + "rather than expected." + expected + ")");
@@ -421,8 +422,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_uppercase with 'aAbBcCdD' parameter ... ");
-        result = c.callProcedure( "to_uppercase", Value.createText("aAbBcCdD"));
+        System.out.print("Check upper_all with 'aAbBcCdD' parameter ... ");
+        result = c.callProcedure( "upper_all", Value.createText("aAbBcCdD"));
         if ( ! result.equals( Value.createText("AABBCCDD"))) {
             System.out.println("FAIL (got " + result + " rather than AABBCCDD value.");
             return false;
@@ -430,8 +431,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_uppercase with 'ABCD' parameter ... ");
-        result = c.callProcedure( "to_uppercase", Value.createText("ABCD"));
+        System.out.print("Check upper_all with 'ABCD' parameter ... ");
+        result = c.callProcedure( "upper_all", Value.createText("ABCD"));
         if ( ! result.equals( Value.createText("ABCD"))) {
             System.out.println("FAIL (got " + result + " rather than ABCD value.");
             return false;
@@ -439,8 +440,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_uppercase with 'abcd' parameter ... ");
-        result = c.callProcedure( "to_uppercase", Value.createText("abcd"));
+        System.out.print("Check upper_all with 'abcd' parameter ... ");
+        result = c.callProcedure( "upper_all", Value.createText("abcd"));
         if ( ! result.equals( Value.createText("ABCD"))) {
             System.out.println("FAIL (got " + result + " rather than ABCD value.");
             return false;
@@ -452,8 +453,8 @@ public class TestWhaisText
     }
     
     boolean executeTestLowerAll(Connection c) throws IOException {
-        System.out.print("Check to_lowercase with NULL parameter ... ");
-        Value result = c.callProcedure( "to_lowercase", Value.createText(null));
+        System.out.print("Check lower_all with NULL parameter ... ");
+        Value result = c.callProcedure( "lower_all", Value.createText(null));
         final ValueType expected = ValueType.create(ValueType.TEXT);
         if (! result.type().equals(expected)) {
             System.out.println("FAIL (the type retrieved is " + result.type() + "rather than expected." + expected + ")");
@@ -466,8 +467,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_lowercase with 'aAbBcCdD' parameter ... ");
-        result =c.callProcedure( "to_lowercase", Value.createText("aAbBcCdD"));
+        System.out.print("Check lower_all with 'aAbBcCdD' parameter ... ");
+        result =c.callProcedure( "lower_all", Value.createText("aAbBcCdD"));
         if (! result.equals( Value.createText("aabbccdd"))) {
             System.out.println("FAIL (got " + result + " rather than aabbccdd null value.");
             return false;
@@ -475,8 +476,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_lowercase with 'ABCD' parameter ... ");
-        result = c.callProcedure( "to_lowercase", Value.createText("ABCD"));
+        System.out.print("Check lower_all with 'ABCD' parameter ... ");
+        result = c.callProcedure( "lower_all", Value.createText("ABCD"));
         if ( ! result.equals( Value.createText("abcd"))) {
             System.out.println("FAIL (got " + result + " rather than abcd null value.");
             return false;
@@ -484,8 +485,8 @@ public class TestWhaisText
         else 
             System.out.println("OK");
         
-        System.out.print("Check to_lowercase with 'abcd' parameter ... ");
-        result = c.callProcedure( "to_lowercase", Value.createText("abcd"));
+        System.out.print("Check lower_all with 'abcd' parameter ... ");
+        result = c.callProcedure( "lower_all", Value.createText("abcd"));
         if ( ! result.equals( Value.createText("abcd"))) {
             System.out.println("FAIL (got " + result + " rather than abcd null value.");
             return false;
@@ -1462,4 +1463,9 @@ public class TestWhaisText
         
         return true;
     }
+    
+
 }
+
+    
+    
