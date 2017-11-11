@@ -57,9 +57,16 @@ public class TimeValue extends Value
 
         try {
 
-            final int yearEndOffset = v.indexOf( '/');
-            final int monthEndOffset = v.indexOf( '/', yearEndOffset + 1);
-            final int dayEndOffset = type.equals( ValueType.dateType()) ? v.length() : v.indexOf( ' ');
+            char dateSeparator = '/';
+            int yearEndOffset = v.indexOf(dateSeparator);
+            if (yearEndOffset < 0) {
+                dateSeparator = '-';
+                yearEndOffset = v.indexOf(dateSeparator);
+                if (yearEndOffset == 0) //Ignore the first character ... maybe is the year's negative sign.
+                    yearEndOffset = v.indexOf( dateSeparator, yearEndOffset + 1);
+            }
+            int monthEndOffset = v.indexOf( dateSeparator, yearEndOffset + 1);
+            int dayEndOffset = type.equals( ValueType.dateType()) ? v.length() : v.indexOf( ' ');
 
             mYear = Integer.parseInt( v.substring( 0, yearEndOffset));
             mMonth = (byte) Integer.parseInt( v.substring( yearEndOffset + 1, monthEndOffset));
@@ -107,14 +114,14 @@ public class TimeValue extends Value
             ConnException buildExcept = null;
             if (type.equals( ValueType.dateType())) {
                 buildExcept = new ConnException( CmdResult.INVALID_ARGS,
-                        "Failed to build date value. A valid format is 'YYYY/MM/DD");
+                        "Failed to build date value. A valid format is 'YYYY/M/D or 'YYYY-M-D'.");
             } else if (type.equals( ValueType.datetimeType())) {
                 buildExcept = new ConnException( CmdResult.INVALID_ARGS,
-                        "Failed to build date&time value. A valid format is 'YYYY/MM/DD hh:mm:ss");
+                        "Failed to build date&time value. A valid format is 'YYYY/M/D h:m:s' or 'YYYY-M-D h:m:s'.");
             } else {
                 assert type.equals( ValueType.hirestimeType());
                 buildExcept = new ConnException( CmdResult.INVALID_ARGS,
-                        "Failed to build high resolution time value. A valid format is 'YYYY/MM/DD hh:mm:ss.uuuuuu");
+                        "Failed to build high resolution time value. A valid format is 'YYYY/M/D h:m:s.uuuuuu' or 'YYYY-M-D h:m:s.uuuuuu'.");
             }
             buildExcept.initCause( e);
             throw buildExcept;
