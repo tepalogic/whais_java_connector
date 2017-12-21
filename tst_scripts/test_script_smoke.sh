@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TESTS=`find ./ -name "*Test*.class" | grep -v '\\$'`
+TESTS=`find ./ -name "Test*.class" | grep -v '\\$'`
 total_tests=0
 failed_tests=0
 
