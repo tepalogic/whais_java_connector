@@ -138,9 +138,9 @@ public class TestWhaisTable implements WhaisAPITester
                 "Test with local table and a invalid column element.",
                 "Test with local table and more directions than columns.",
                 "Test with local table and negative start row",
-                "Test with local tbale and huge value for last row",
-                "Test with local tbale and valid args and rows (smaller interval)",
-                "Test with local tbale and valid args and rows (other small interval, and other cols)"));
+                "Test with local table and huge value for last row",
+                "Test with local table and valid args and rows (smaller interval)",
+                "Test with local table and valid args and rows (other small interval, and other cols)"));
     }
 
 
