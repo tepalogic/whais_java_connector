@@ -147,7 +147,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void close( boolean discardCmds)
+    public synchronized void close( boolean discardCmds)
     {
         if (mFrame == null)
             return;
@@ -189,7 +189,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public boolean isAlive ()
+    public synchronized  boolean isAlive ()
     {
         try {
             if (mFrame.hasPendingCommands())
@@ -214,7 +214,7 @@ public class Connection
      * @since 1.0
      */
     @Override
-    protected void finalize() throws Throwable
+    protected  void finalize() throws Throwable
     {
         close( true);
         super.finalize();
@@ -236,7 +236,7 @@ public class Connection
      * @since 1.0
      * @see net.whais.Client.ConnException
      */
-    public void pingServer() throws IOException
+    public synchronized void pingServer() throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -268,7 +268,7 @@ public class Connection
      * @see #describeGlobal(String)
      * @since 1.0
      */
-    public String[] retrieveGlobalNames() throws IOException
+    public synchronized String[] retrieveGlobalNames() throws IOException
     {
         String[] result = Connection.emptyList;
 
@@ -341,7 +341,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public ValueType describeGlobal( String name) throws IOException
+    public synchronized ValueType describeGlobal( String name) throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -371,7 +371,7 @@ public class Connection
      * @see #describeProcedure(String)
      * @since 1.0
      */
-    public String[] retrieveProceduresNames() throws IOException
+    public synchronized String[] retrieveProceduresNames() throws IOException
     {
         String[] result = null;
 
@@ -446,7 +446,7 @@ public class Connection
      * @see ProcedureDescription
      * @since 1.0
      */
-    public ProcedureDescription describeProcedure( String name) throws IOException
+    public synchronized ProcedureDescription describeProcedure( String name) throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -559,7 +559,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public ValueType describeStackTop() throws IOException
+    public synchronized ValueType describeStackTop() throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -594,7 +594,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void pushStackValue( ValueType type) throws IOException
+    public synchronized void pushStackValue( ValueType type) throws IOException
     {
         if ( ! mFrame.hasPendingCommands())
             mFrame.discardCommandBuffer();
@@ -666,7 +666,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void pushStackValue( Value v) throws IOException
+    public synchronized void pushStackValue( Value v) throws IOException
     {
         pushStackValue( v.type());
 
@@ -698,7 +698,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void popStackValues( int count) throws IOException
+    public synchronized void popStackValues( int count) throws IOException
     {
         if ( ! mFrame.hasPendingCommands())
             mFrame.discardCommandBuffer();
@@ -759,7 +759,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void executeProcedure( final String name) throws IOException
+    public synchronized void executeProcedure( final String name) throws IOException
     {
         if ( ! mFrame.hasPendingCommands())
             mFrame.discardCommandBuffer();
@@ -806,7 +806,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void updateStackTopAddTableRows( int rowsCount) throws IOException
+    public synchronized void updateStackTopAddTableRows( int rowsCount) throws IOException
     {
         assert rowsCount > 0;
 
@@ -866,7 +866,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void updateStackTop( Value val) throws IOException
+    public synchronized void updateStackTop( Value val) throws IOException
     {
         if (!mFrame.hasPendingCommands())
             mFrame.discardCommandBuffer();
@@ -949,9 +949,9 @@ public class Connection
      *
      * @since 1.0
      */
-    public void updateStackTop( Value     val,
-                                String    fieldName,
-                                long      row) throws IOException
+    public synchronized void updateStackTop(Value     val,
+                                            String    fieldName,
+                                            long      row) throws IOException
     {
         if (((fieldName == null)
                 || (fieldName.equals( IGNORE_FIELD))) && (row == IGNORE_ROW)) {
@@ -1005,7 +1005,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public void flushStackUpdates() throws IOException
+    public synchronized void flushStackUpdates() throws IOException
     {
         if ( ! mFrame.hasPendingCommands())
             return;
@@ -1044,7 +1044,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public long retrieveStackTopRowsCount() throws IOException
+    public synchronized long retrieveStackTopRowsCount() throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -1062,7 +1062,7 @@ public class Connection
         return b.getLong();
     }
 
-    Value retrieveStackTop( final long row) throws IOException
+    public synchronized Value retrieveStackTop( final long row) throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -1216,7 +1216,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public Value retrieveStackTop( final String   field,
+    public synchronized Value retrieveStackTop( final String   field,
                                    final long     row) throws IOException
     {
         if (field == null || field.equals( IGNORE_FIELD))
@@ -1361,7 +1361,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public Value retrieveStackTop() throws IOException
+    public synchronized Value retrieveStackTop() throws IOException
     {
         if (mFrame.hasPendingCommands())
             throw new ConnException( CmdResult.INCOMPLETE_CMD);
@@ -1499,7 +1499,7 @@ public class Connection
      *
      * @since 1.0
      */
-    public Value callProcedure(final String procName, final Value... params) throws IOException {
+    public synchronized Value callProcedure(final String procName, final Value... params) throws IOException {
 
         if (params != null) {
             for (Value p : params)
@@ -1575,7 +1575,7 @@ public class Connection
         mFrame.setPendingCommand( _c.CMD_UPDATE_STACK);
     }
 
-    private final void updateStackTopArray( Value[]     values,
+    private synchronized final void updateStackTopArray( Value[]     values,
                                             long        arrayOffset) throws IOException
     {
         assert (values != null) && (values.length > 0);

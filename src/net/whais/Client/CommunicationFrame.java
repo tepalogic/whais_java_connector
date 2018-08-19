@@ -344,6 +344,7 @@ class CommunicationFrame
         mCipher.encodeFrame( this, mKey);
 
         mOStream.write( mRawFrame.array(), 0, mRawFrameSize);
+        mOStream.flush();
     }
 
     private final Random mRndGenerator;
