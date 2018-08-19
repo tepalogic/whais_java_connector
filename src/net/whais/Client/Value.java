@@ -1,3 +1,19 @@
+/**
+ * Copyright 2016-2018 Iulian Popa (popaiulian@gmail.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package net.whais.Client;
 
 import java.nio.charset.StandardCharsets;
@@ -229,7 +245,7 @@ public abstract class Value
     {
         return createBasic (ValueType.boolType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais boolean value.
      *
@@ -243,7 +259,7 @@ public abstract class Value
     {
         return createBasic (ValueType.boolType (), s ? "1" : "0");
     }
-    
+
     /**
      * Wrapper to create a Whais NULL boolean value.
      *
@@ -271,7 +287,7 @@ public abstract class Value
     {
         return createBasic (ValueType.charType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais char value.
      *
@@ -285,7 +301,7 @@ public abstract class Value
     {
         return createBasic (ValueType.charType (), "" + c);
     }
-    
+
     /**
      * Wrapper to create a Whais NULL char value.
      *
@@ -315,7 +331,7 @@ public abstract class Value
     {
         return createBasic (ValueType.dateType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais NULL date value.
      *
@@ -344,7 +360,7 @@ public abstract class Value
     {
         return createBasic (ValueType.datetimeType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais NULL date and time value.
      *
@@ -372,7 +388,7 @@ public abstract class Value
     {
         return createBasic (ValueType.hirestimeType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais NULL high resolution value.
      *
@@ -406,7 +422,7 @@ public abstract class Value
         }
         return createBasic (ValueType.int8Type (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais 8 bit integer value.
      *
@@ -420,7 +436,7 @@ public abstract class Value
     {
         return createInt8((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 8 bit integer value.
      *
@@ -434,7 +450,7 @@ public abstract class Value
     {
         return createBasic (ValueType.int8Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 8 bit integer value.
      *
@@ -469,7 +485,7 @@ public abstract class Value
         }
         return createBasic (ValueType.int16Type (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais 16 bit integer value.
      *
@@ -483,8 +499,8 @@ public abstract class Value
     {
         return createInt16((long)i);
     }
-    
-    
+
+
     /**
      * Wrapper to create a Whais 16 bit integer value.
      *
@@ -498,7 +514,7 @@ public abstract class Value
     {
         return createBasic (ValueType.int16Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 16 bit integer value.
      *
@@ -530,10 +546,10 @@ public abstract class Value
             if ((l < Integer.MIN_VALUE) || (l > Integer.MAX_VALUE))
                 throw new ConnException( CmdResult.VALUE_OUT_OF_RANGE, "Cannot created a INT32 with to hold " + l);
         }
-        
+
         return createBasic (ValueType.int32Type (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais 32 bit integer value.
      *
@@ -547,7 +563,7 @@ public abstract class Value
     {
         return createInt32((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 32 bit integer value.
      *
@@ -561,7 +577,7 @@ public abstract class Value
     {
         return createBasic (ValueType.int32Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 32 bit integer value.
      *
@@ -603,7 +619,7 @@ public abstract class Value
     {
         return createInt64((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 64 bit integer value.
      *
@@ -617,7 +633,7 @@ public abstract class Value
     {
         return createBasic (ValueType.int64Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 64 bit integer value.
      *
@@ -652,7 +668,7 @@ public abstract class Value
         }
         return createBasic (ValueType.uint8Type (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais 8 bit unsigned integer value.
      *
@@ -666,7 +682,7 @@ public abstract class Value
     {
         return createUInt8((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 8 bit unsigned integer value.
      *
@@ -680,7 +696,7 @@ public abstract class Value
     {
         return createBasic (ValueType.uint8Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 8 bit unsigned integer value.
      *
@@ -728,7 +744,7 @@ public abstract class Value
     {
         return createUInt16((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 16 bit unsigned integer value.
      *
@@ -742,7 +758,7 @@ public abstract class Value
     {
         return createBasic (ValueType.uint16Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 16 bit unsigned integer value.
      *
@@ -791,7 +807,7 @@ public abstract class Value
     {
         return createUInt32((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 32 bit unsigned integer value.
      *
@@ -805,7 +821,7 @@ public abstract class Value
     {
         return createBasic (ValueType.uint32Type (), Long.toString(l));
     }
-    
+
     /**
      * Wrapper to create a Whais NULL 32 bit unsigned integer value.
      *
@@ -833,7 +849,7 @@ public abstract class Value
     {
         return createBasic (ValueType.uint64Type (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais 64 bit unsigned integer value.
      *
@@ -847,7 +863,7 @@ public abstract class Value
     {
         return createUInt64((long)i);
     }
-    
+
     /**
      * Wrapper to create a Whais 64 bit unsigned integer value.
      *
@@ -890,7 +906,7 @@ public abstract class Value
     {
         return createBasic (ValueType.realType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais real value.
      *
@@ -904,7 +920,7 @@ public abstract class Value
     {
         return createBasic (ValueType.realType (), d == null ? null : d.toString());
     }
-    
+
     /**
      * Wrapper to create a Whais NULL real value.
      *
@@ -933,7 +949,7 @@ public abstract class Value
     {
         return createBasic (ValueType.richrealType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais rich real value.
      *
@@ -947,7 +963,7 @@ public abstract class Value
     {
         return createBasic (ValueType.richrealType (), d == null ?  null : d.toString());
     }
-    
+
     /**
      * Wrapper to create a Whais NULL rich real value.
      *
@@ -976,7 +992,7 @@ public abstract class Value
     {
         return createBasic (ValueType.textType (), s);
     }
-    
+
     /**
      * Wrapper to create a Whais NULL text value.
      *
