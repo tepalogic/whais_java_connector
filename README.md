@@ -1,6 +1,6 @@
 # Whais Java Connector
 
-htttp://www.whais.net (to be available in the next days)
+htttp://whais.net 
 
 The Whais Java Connector is in essence a Java library used to facilitate the access of client to a Whais server.
 
